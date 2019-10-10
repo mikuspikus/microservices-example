@@ -5,7 +5,9 @@ import re
 
 from typing import Union, Tuple, List, Any, Dict
 
-from ...gateway.settings import DEBUG
+from django.conf import settings
+
+DEBUG = settings.DEBUG
 
 from rest_framework.views import Request
 
