@@ -7,8 +7,13 @@ from rest_framework.permissions import IsAuthenticated
 from api.serializers import CustomUserSerializer
 from api.models import CustomUser
 
-# Create your views here.
-class UserInfoView(APIView):
+from logging import Logger
+
+class BaseView(APIView):
+    logger = Logger(name = 'user-views-logger')
+
+
+class UserInfoView(BaseView):
 
     permission_classes = (IsAuthenticated, )
 
@@ -50,7 +55,7 @@ class UsersView(ListCreateAPIView):
         return CustomUser.objects.all()
 
 
-class UserView(APIView):
+class UserView(BaseView):
     permissions_classes = (IsAuthenticated, )
 
     def get(self, request: Request, user_id: int) -> Response:
@@ -65,7 +70,7 @@ class UserView(APIView):
         return Response(data = serializer.data, status = status.HTTP_200_OK)
 
 
-class RegisterView(APIView):
+class RegisterView(BaseView):
     def post(self, request : Request, *args, **kwargs) -> Response:
         serializer = CustomUserSerializer(data = request.data)
 

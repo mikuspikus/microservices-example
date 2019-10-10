@@ -4,14 +4,12 @@ from .serializers import ArticleSerializer
 from rest_framework import status, generics
 from rest_framework.views import Request, Response, APIView
 
-import uuid
-
-from typing import Union
+from uuid import UUID
 
 class ArticlesView(generics.ListCreateAPIView):
     serializer_class = ArticleSerializer
 
-    def get_queryset(self) -> Union[Response, ]:
+    def get_queryset(self) -> Response:
         try:
             ath_uuid = self.request.query_params['ath_uuid']
 
@@ -36,7 +34,7 @@ class ArticlesView(generics.ListCreateAPIView):
 
 
 class ArticleView(APIView):
-    def get(self, request: Request, art_uuid: str) -> Response:
+    def get(self, request: Request, art_uuid: UUID) -> Response:
         try:
             article_ = Article.objects.get(pk = art_uuid)
 
@@ -49,7 +47,7 @@ class ArticleView(APIView):
 
         return Response(data = serializer.data, status = status.HTTP_200_OK)
 
-    def patch(self, request: Request, art_uuid: str) -> Response:
+    def patch(self, request: Request, art_uuid: UUID) -> Response:
         try:
             article_ = Article.objects.get(pk = art_uuid)
 
@@ -65,7 +63,7 @@ class ArticleView(APIView):
 
         return Response(data = serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request: Request, art_uuid: str) -> Response:
+    def delete(self, request: Request, art_uuid: UUID) -> Response:
         try:
             article_ = Article.objects.get(pk = art_uuid)
 

@@ -1,11 +1,15 @@
 from django.shortcuts import render
+
 from rest_framework.views import APIView, Request, Response
+
+from logging import Logger
 
 from api.requesters import UserRequester
 from api.permissions import IsAuthenticatedByAuthenticateService
 
 class BaseUserView(APIView):
     requester = UserRequester()
+    logger = Logger(name = 'gateway-user-views-logger')
 
 class AuthenticateView(BaseUserView):
     def post(self, request: Request) -> Response:
@@ -20,7 +24,7 @@ class RegisterView(BaseUserView):
         return Response(response_json, status = code)
 
 class UserInfoView(BaseUserView):
-    #permission_classes = (IsAuthenticatedByAuthenticateService, )
+    permission_classes = (IsAuthenticatedByAuthenticateService, )
 
     def get(self, request: Request) -> Response:
         response_json, code = self.requester.info(request = request)

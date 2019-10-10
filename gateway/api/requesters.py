@@ -3,8 +3,6 @@ import json
 
 from typing import Union, Tuple, List, Any, Dict
 
-from abc import ABCMeta
-
 from gateway.settings import DEBUG
 
 from logging import Logger
@@ -84,7 +82,7 @@ class BaseRequester():
 
         return token
 
-    def authenticate_header(self, request: Request) -> Union[Dict, None]:
+    def authenticate_header(self, request: Request) -> Union[Dict[str, str], None]:
         try:
             return {'Authentication' : f'Token {self.__token(request)}'}
 
@@ -103,7 +101,7 @@ class UserRequester(BaseRequester):
     def __init__(self):
         self.URL = self.URLS['USER']
 
-    def __logging(self, response: requests.Response, task_name: str) -> Tuple[Dict, int]:
+    def __logging(self, response: requests.Response, task_name: str) -> Tuple[Dict[str, str], int]:
         '''
         '''
         if response is None:
@@ -118,7 +116,7 @@ class UserRequester(BaseRequester):
 
         return response.text, response.status_code
 
-    def authenticate(self, data: dict) -> Tuple[Dict, int]:
+    def authenticate(self, data: dict) -> Tuple[Dict[str, str], int]:
         response = self.post(
             url = self.URL + self.TOKENS['auth'],
             data = data
@@ -182,5 +180,12 @@ class UserRequester(BaseRequester):
         return self.__logging(response = response, task_name = 'DELETE')
 
 
+class ArticleRequester(BaseRequester):
+    TOKENS = {
 
+    }
 
+    URL = ''
+
+    def __init__(self):
+        self.URL = self.URLS['ARTICLE']
