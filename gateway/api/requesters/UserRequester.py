@@ -24,7 +24,7 @@ class UserRequester(BaseRequester):
             data = data
         )
 
-        return self.__logging(response = response, task_name = 'AUTHENTICATE')
+        return self._process_response(response = response, task_name = 'AUTHENTICATE')
 
     def register(self, data: dict) -> Tuple[Dict, int]:
         response = self.post(
@@ -32,7 +32,7 @@ class UserRequester(BaseRequester):
             data = data
         )
 
-        return self.__logging(response = response, task_name = 'REGISTER')
+        return self._process_response(response = response, task_name = 'REGISTER')
 
     def info(self, request: Request) -> Tuple[Dict, int]:
         response = self.get(
@@ -40,7 +40,7 @@ class UserRequester(BaseRequester):
             headers = self.authenticate_header(request),
         )
 
-        return self.__logging(response = response, task_name = 'INFO')
+        return self._process_response(response = response, task_name = 'INFO')
 
     def users(self, request: Request, limit_offset: (int, int) = None) -> Tuple[Dict, int]:
         url = self.URL + self.TOKENS['users']
@@ -53,7 +53,7 @@ class UserRequester(BaseRequester):
             headers = self.authenticate_header(request),
         )
 
-        return self.__logging(response = response, task_name = 'USERS')
+        return self._process_response(response = response, task_name = 'USERS')
 
     def user(self, request: Request, id_: int) -> Tuple[Dict, int]:
         response = self.get(
@@ -61,7 +61,7 @@ class UserRequester(BaseRequester):
             headers = self.authenticate_header(request),
         )
 
-        return self.__logging(response = response, task_name = 'USER')
+        return self._process_response(response = response, task_name = 'USER')
 
     def delete(self, request: Request) -> Tuple[Dict, int]:
         info_json, code = self.info(token  = token)
@@ -79,4 +79,4 @@ class UserRequester(BaseRequester):
             headers = self.authenticate_header(request),
         )
 
-        return self.__logging(response = response, task_name = 'DELETE')
+        return self._process_response(response = response, task_name = 'DELETE')

@@ -41,9 +41,9 @@ class ArticleRequester(BaseRequester):
         if code != 200:
             return (u_json, code)
 
-        url += f'?user_id={u_json["id"]}'
+        url += f'?ath_uuid={u_json["outer_uuid"]}'
 
-        limitoffset = self.__limit_offset_from_request(request)
+        limitoffset = self._limit_offset_from_request(request)
 
         if limitoffset:
             url += f'&limit={limitoffset[0]}&offset={limitoffset[1]}'
@@ -52,12 +52,12 @@ class ArticleRequester(BaseRequester):
             url = url,
         )
 
-        response_json, code = self.__process_response(
+        response_json, code = self._process_response(
             response = response,
             task_name = 'ARTICLES'
         )
 
-        response_json = self.__next_previous_link(
+        response_json = self._next_previous_link(
             data = response.json()
         )
 
@@ -68,7 +68,7 @@ class ArticleRequester(BaseRequester):
             url = self.URL + f'{uuid}/'
         )
 
-        return self.__process_response(
+        return self._process_response(
             response = response,
             task_name = 'ARTICLE'
         )
@@ -81,7 +81,7 @@ class ArticleRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'POST_ARTICLE'
         )
@@ -94,7 +94,7 @@ class ArticleRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'PATCH_ARTICLE'
         )
@@ -110,7 +110,7 @@ class ArticleRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'DELETE_ARTICLE'
         )

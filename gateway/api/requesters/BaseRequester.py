@@ -9,16 +9,16 @@ from django.conf import settings
 
 DEBUG = settings.DEBUG
 
-from rest_framework.views import Request
+from rest_framework.views import Request, Response
 
 class BaseRequester():
     logger = logging.getLogger(name = 'requester')
 
     URLS = {
         'USER' : 'http://localhost:8081/auth/' if DEBUG else '',
-        'ARTICLE' : 'http://localhost:8082/article/' if DEBUG else '',
-        'JOURNAL' : 'http://localhost:8083/journal/' if DEBUG else '',
-        'PUBLISHER' : 'http://localhost:8084/publisher/' if DEBUG else '',
+        'ARTICLE' : 'http://localhost:8082/articles/' if DEBUG else '',
+        'JOURNAL' : 'http://localhost:8083/journals/' if DEBUG else '',
+        'PUBLISHER' : 'http://localhost:8084/publishers/' if DEBUG else '',
     }
 
     TOKENS = {}
@@ -78,23 +78,23 @@ class BaseRequester():
 
         return response
 
-    def __token_from_request(self, request: Request) -> str:
+    def _token_from_request(self, request: Request) -> str:
         '''
         Raises KeyError
         '''
         token = request.META['HTTP_AUTHORIZATION']
-        token = token[6:]
+        token = token[7:]
 
         return token
 
     def authenticate_header(self, request: Request) -> Union[Dict[str, str], None]:
         try:
-            return {'Authentication' : f'Token {self.__token(request)}'}
+            return {'Authorization' : f'Token {self._token_from_request(request)}'}
 
         except KeyError:
             return None
 
-    def __limit_offset_from_request(self, request: Request) -> Union[Tuple[int, int], None]:
+    def _limit_offset_from_request(self, request: Request) -> Union[Tuple[int, int], None]:
         try:
             limit = request.query_params['limit']
             offset = request.query_params['offset']
@@ -104,7 +104,7 @@ class BaseRequester():
 
         return (limit, offset)
 
-    def __limit_offset_from_link(self, link: str) -> Union[Tuple[int, int], None]:
+    def _limit_offset_from_link(self, link: str) -> Union[Tuple[int, int], None]:
         str_limit, str_offset = re.findall(r'limit=\d+', link), re.findall(r'offset=\d+', link)
 
         limit = int(re.findall(r'\d+', str_limit[0])) if len(str_limit) else 0
@@ -112,11 +112,11 @@ class BaseRequester():
 
         return (limit, offset)
 
-    def __next_previous_link(self, data: dict) -> Dict[str, str]:
+    def _next_previous_link(self, data: dict) -> Dict[str, str]:
         try:
             next_link, previous_link = data['next'], data['previous']
 
-        except KeyError:
+        except (KeyError, TypeError):
             return data
 
         if next_link:
@@ -139,7 +139,16 @@ class BaseRequester():
 
         return data
 
-    def __process_response(self, response: requests.Response, task_name: str) -> Tuple[Dict[str, str], int]:
+    def _safe_next_previous_link(self, response: Response):
+        try:
+            return self._next_previous_link(
+                data = response.json()
+            )
+
+        except ValueError:
+            return response.text
+
+    def _process_response(self, response: requests.Response, task_name: str) -> Tuple[Union[Dict[str, str], str], int]:
         '''
         '''
         if response is None:

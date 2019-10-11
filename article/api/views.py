@@ -3,6 +3,7 @@ from .serializers import ArticleSerializer
 
 from rest_framework import status, generics
 from rest_framework.views import Request, Response, APIView
+from rest_framework.exceptions import ValidationError
 
 from uuid import UUID
 
@@ -14,21 +15,21 @@ class ArticlesView(generics.ListCreateAPIView):
             ath_uuid = self.request.query_params['ath_uuid']
 
         except KeyError:
-            return Response(
-                data = { 'error' : '\'ath_uuid\' field not found' },
-                status = status.HTTP_400_BAD_REQUEST
+            raise ValidationError(
+                detail = '\'ath_uuid\' field not found',
+                code = status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            author_ = Author.object.get(author_uuid = uuid.UUID(ath_uuid))[0]
+            author_ = Author.objects.get(author_uuid = UUID(ath_uuid))[0]
 
         except Author.DoesNotExist:
-            return Response(
-                data = { 'error' : f'No apropriate author for \'ath_uuid\' = {ath_uuid}' },
-                status = status.HTTP_404_NOT_FOUND
+            raise ValidationError(
+                detail = f'No apropriate author for \'ath_uuid\' = \'{ath_uuid}\'',
+                code = status.HTTP_404_NOT_FOUND
             )
 
-        articles_ = Article.object.filter(authors = author_)
+        articles_ = Article.objects.filter(authors = author_)
 
         return articles_
 

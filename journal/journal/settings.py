@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'article.urls'
+ROOT_URLCONF = 'journal.urls'
 
 TEMPLATES = [
     {
@@ -69,7 +69,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'article.wsgi.application'
+WSGI_APPLICATION = 'journal.wsgi.application'
 
 # REST FRAMEWORK
 renderer_classes = ['rest_framework.renderers.JSONRenderer']

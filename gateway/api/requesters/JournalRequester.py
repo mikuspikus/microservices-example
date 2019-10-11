@@ -14,6 +14,20 @@ class JournalRequester(BaseRequester):
     def __init__(self):
         self.URL = self.URLS['JOURNAL']
 
+    def __user_exists(self, request: Request, u_id: int) -> bool:
+        from api.requesters.UserRequester import UserRequester
+
+        _, code = UserRequester().user(request = request, id_ = u_id)
+
+        return code == 200
+
+    def __user_by_token(self, request: Request) -> Tuple[Dict[str, str], int]:
+        from api.requesters.UserRequester import UserRequester
+
+        u_json, code = UserRequester().info(request = request)
+
+        return u_json, code
+
     def journals(self, request: Request) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
@@ -24,7 +38,7 @@ class JournalRequester(BaseRequester):
 
         url += f'?user_id={u_json["id"]}'
 
-        limitoffset = self.__limit_offset_from_request(request)
+        limitoffset = self._limit_offset_from_request(request)
 
         if limitoffset:
             url += f'&limit={limitoffset[0]}&offset={limitoffset[1]}'
@@ -33,13 +47,13 @@ class JournalRequester(BaseRequester):
             url = url,
         )
 
-        response_json, code = self.__process_response(
+        response_json, code = self._process_response(
             response = response,
             task_name = 'JOURNALS'
         )
 
-        response_json = self.__next_previous_link(
-            data = response.json()
+        response_json = self._safe_next_previous_link(
+            response = response
         )
 
         return (response_json, response.status_code)
@@ -49,7 +63,7 @@ class JournalRequester(BaseRequester):
             url = self.URL + f'{uuid}/'
         )
 
-        return self.__process_response(
+        return self._process_response(
             response = response,
             task_name = 'JOURNAL'
         )
@@ -62,7 +76,7 @@ class JournalRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'POST_JOURNAL'
         )
@@ -75,7 +89,7 @@ class JournalRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'PATCH_ARTICLE'
         )
@@ -91,7 +105,7 @@ class JournalRequester(BaseRequester):
             data = data
         )
 
-        return response.__process_response(
+        return response._process_response(
             response = response,
             task_name = 'DELETE_JOURNAL'
         )

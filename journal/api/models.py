@@ -9,8 +9,5 @@ class Journal(models.Model):
     foundation = models.DateField()
     publisher = models.UUIDField()
 
-    class Meta:
-        ordering = ('address', )
-
     def __str__(self) -> str:
         return self.name

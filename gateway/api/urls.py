@@ -17,8 +17,8 @@ urlpatterns = [
     path('journals/', JournalsView.JournalsView.as_view(), name = 'journals'),
     path('journals/<uuid:j_uuid>/', JournalsView.JournalView.as_view(), name = 'journal'),
     
-    path('publisher/', PublisherView.PublishersView.as_view(), name = 'publishers'),
-    path('publisher/<uuid:p_uuid>/', PublisherView.PublisherView.as_view(), name = 'publisher'),
+    path('publishers/', PublisherView.PublishersView.as_view(), name = 'publishers'),
+    path('publishers/<uuid:p_uuid>/', PublisherView.PublisherView.as_view(), name = 'publisher'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

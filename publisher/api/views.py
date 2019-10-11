@@ -1,5 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
+from rest_framework.exceptions import ValidationError
 
 from logging import Logger
 
@@ -9,32 +10,32 @@ from .serializers import PublisherSerializer
 from .models import Publisher, Journal
 
 class BaseView(APIView):
-    logger = Logger(name = 'publisher-views-logger')
+    logger = Logger(name = 'publisher.api.views')
 
 
-class ArticlesView(generics.ListCreateAPIView):
+class PublishersView(generics.ListCreateAPIView):
     serializer_class = PublisherSerializer
 
-    def get_queryset(self) -> Response:
+    def get_queryset(self):
         try:
             j_uuid = self.request.query_params['j_uuid']
 
         except KeyError:
-            return Response(
-                data = { 'error' : '\'j_uuid\' field not found' },
-                status = status.HTTP_400_BAD_REQUEST
+            raise ValidationError(
+                detail = '\'j_uuid\' field not found',
+                code = status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            journal_ = Journal.object.get(uuid = uuid.UUID(j_uuid))[0]
+            journal_ = Journal.object.get(uuid = UUID(j_uuid))[0]
 
         except Journal.DoesNotExist:
-            return Response(
-                data = { 'error' : f'No apropriate journal for \'j_uuid\' = {j_uuid}' },
-                status = status.HTTP_404_NOT_FOUND
+            raise ValidationError(
+                detail = f'No apropriate journal for \'j_uuid\' = \'{j_uuid}\'',
+                code = status.HTTP_404_NOT_FOUND
             )
 
-        publisher_ = Publisher.object.filter(journals = author_)
+        publisher_ = Publisher.object.filter(journals = journal_)
 
         return publisher_
 

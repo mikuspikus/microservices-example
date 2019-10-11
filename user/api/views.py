@@ -10,7 +10,7 @@ from api.models import CustomUser
 from logging import Logger
 
 class BaseView(APIView):
-    logger = Logger(name = 'user-views-logger')
+    logger = Logger(name = 'user.api.views')
 
 
 class UserInfoView(BaseView):

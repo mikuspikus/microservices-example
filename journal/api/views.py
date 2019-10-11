@@ -9,7 +9,7 @@ from .serializers import JournalSerializer
 from .models import Journal
 
 class BaseView(APIView):
-    logger = Logger(name = 'journal-views-logger')
+    logger = Logger(name = 'journal.api.views')
 
 
 class JournalsView(BaseView, generics.ListCreateAPIView):
