@@ -10,20 +10,25 @@ install:
 script:
   # - coverage run gateway/manage.py test
   # - coverage report -m
-  - python gateway/manage.py test
+  - cd gateway
+  - python manage.py test
 
   # - coverage run user/manage.py test
   # - coverage report -m
-  - python user/manage.py test
+  - cd ../user
+  - python manage.py test
 
   # - coverage run article/manage.py test
   # - coverage report -m
-  - python article/manage.py test
+  - cd ../article
+  - python manage.py test
 
   # - coverage run journal/manage.py test
   # - coverage report -m
-  - python journal/manage.py test
+  - cd ../journal
+  - python manage.py test
 
   # - coverage run publisher/manage.py test
   # - coverage report -m
-  - python publisher/manage.py test
+  - cd ../publisher
+  - python manage.py test
