@@ -28,3 +28,30 @@ class PublisherSerializer(serializers.ModelSerializer):
                 journal_ = Journal.objects.create(publisher = publisher_, **journal_data)
 
         return publisher_
+
+    def update(self, instance: Publisher, validated_data: dict) -> Publisher:
+        journals_data = validated_data.pop('journals')
+
+        journals_ = instance.journals
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.editor = validated_data.get('editor', instance.editor)
+        instance.address = validated_data.get('address', instance.address)
+
+        if len(journals_data):
+            '''
+            journal has reference to publisher
+            so, creating new journal with reference to instance
+            or changing reference of existing journal
+            '''
+            for j_item in journals_data:
+                try:
+                    journal_ = Journal.objects.get(uuid = j_item.get('uuid'))
+                    journal_.publisher = instance
+
+                except Journal.DoesNotExist:
+                    journal_ = Journal.objects.create(publisher = instance, uuid = j_item.get('uuid'))
+
+        instance.save()
+
+        return instance
