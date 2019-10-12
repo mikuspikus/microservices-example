@@ -12,7 +12,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        exclude = ('id', )
+        fields = '__all__'
 
     '''
     def get_authors(self, instance: Article) -> list:
@@ -48,11 +48,12 @@ class ArticleSerializer(serializers.ModelSerializer):
         instance.publisher = validated_data.get('publisher', instance.publisher)
         instance.journal = validated_data.get('journal', instance.journal)
 
-        instance.authors.clear()
+        if len(authors_data):
+            instance.authors.clear()
 
-        for a_item in authors_data:
-            author_ = Author.get_or_create(author_uuid = a_item.get('author_uuid'))[0]
-            instance.authors.add(author_)
+            for a_item in authors_data:
+                author_, created = Author.objects.get_or_create(author_uuid = a_item.get('author_uuid'))
+                instance.authors.add(author_)
 
         instance.save()
 

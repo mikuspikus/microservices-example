@@ -5,34 +5,46 @@ from rest_framework import status, generics
 from rest_framework.views import Request, Response, APIView
 from rest_framework.exceptions import ValidationError
 
+from django.core.exceptions import FieldError
+
 from uuid import UUID
+import logging
 
-class ArticlesView(generics.ListCreateAPIView):
-    serializer_class = ArticleSerializer
+class BaseView(APIView):
+    logger = logging.getLogger(name = 'article.api.views')
 
-    def get_queryset(self) -> Response:
-        try:
-            ath_uuid = self.request.query_params['ath_uuid']
+class ArticlesView(BaseView):
+    def post(self, request: Request) -> Response:
+        serializer = ArticleSerializer(data = request.data)
 
-        except KeyError:
-            raise ValidationError(
-                detail = '\'ath_uuid\' field not found',
-                code = status.HTTP_400_BAD_REQUEST
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(
+                data = serializer.data,
+                status = status.HTTP_201_CREATED
             )
 
-        try:
-            author_ = Author.objects.get(author_uuid = UUID(ath_uuid))[0]
+        return Response(
+            data = serializer.errors,
+            status = status.HTTP_400_BAD_REQUEST
+        )
 
-        except Author.DoesNotExist:
-            raise ValidationError(
-                detail = f'No apropriate author for \'ath_uuid\' = \'{ath_uuid}\'',
-                code = status.HTTP_404_NOT_FOUND
+    def get(self, request: Request) -> Response:
+        try:
+            article_s = Article.objects.filter(**request.query_params.dict())
+        
+        except FieldError as error:
+            return Response(
+                data = {'errors' : str(error)},
+                status = status.HTTP_400_BAD_REQUEST
             )
 
-        articles_ = Article.objects.filter(authors = author_)
+        serializer = ArticleSerializer(article_s, many = True)
 
-        return articles_
-
+        return Response(
+            data = serializer.data,
+        )
 
 class ArticleView(APIView):
     def get(self, request: Request, art_uuid: UUID) -> Response:
