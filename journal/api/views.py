@@ -51,7 +51,7 @@ class JournalView(BaseView):
 
     def delete(self, request: Request, j_uuid: UUID) -> Response:
         try:
-            journal_ = Journal.objects.get(pk = art_uuid)
+            journal_ = Journal.objects.get(pk = j_uuid)
 
         except Journal.DoesNotExist:
             return Response(status = status.HTTP_404_NOT_FOUND)
