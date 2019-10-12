@@ -10,20 +10,20 @@ install:
 script:
   - cd gateway
   - coverage run manage.py test
-  - coverage report -m
+  #- coverage report -m
   
   - cd ../user
   - coverage run manage.py test
-  - coverage report -m
+  #- coverage report -m
 
   - cd ../article
   - coverage run manage.py test
-  - coverage report -m
+  #- coverage report -m
 
   - cd ../journal
   - coverage run manage.py test
-  - coverage report -m
+  #- coverage report -m
 
   - cd ../publisher
   - coverage run manage.py test
-  - coverage report -m
+  #- coverage report -m
