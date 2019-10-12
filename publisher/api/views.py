@@ -2,43 +2,50 @@ from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
 from rest_framework.exceptions import ValidationError
 
-from logging import Logger
+import logging
 
 from uuid import UUID
 
 from .serializers import PublisherSerializer
-from .models import Publisher, Journal
+from .models import Publisher
+
+from django.core.exceptions import FieldError
 
 class BaseView(APIView):
-    logger = Logger(name = 'publisher.api.views')
+    logger = logging.getLogger(name = 'publisher.api.views')
 
+class PublishersView(BaseView):
+    def post(self, request: Request) -> Response:
+        serializer = PublisherSerializer(data = request.data)
 
-class PublishersView(generics.ListCreateAPIView):
-    serializer_class = PublisherSerializer
+        if serializer.is_valid():
+            serializer.save()
 
-    def get_queryset(self):
-        try:
-            j_uuid = self.request.query_params['j_uuid']
-
-        except KeyError:
-            raise ValidationError(
-                detail = '\'j_uuid\' field not found',
-                code = status.HTTP_400_BAD_REQUEST
+            return Response(
+                data = serializer.data,
+                status = status.HTTP_201_CREATED
             )
 
-        try:
-            journal_ = Journal.object.get(uuid = UUID(j_uuid))[0]
+        return Response(
+            data = serializer.errors,
+            status = status.HTTP_400_BAD_REQUEST
+        )
 
-        except Journal.DoesNotExist:
-            raise ValidationError(
-                detail = f'No apropriate journal for \'j_uuid\' = \'{j_uuid}\'',
-                code = status.HTTP_404_NOT_FOUND
+    def get(self, request: Request) -> Response:
+        try:
+            publisher_s = Publisher.objects.filter(**request.query_params.dict())
+        
+        except FieldError as error:
+            return Response(
+                data = {'errors' : str(error)},
+                status = status.HTTP_400_BAD_REQUEST
             )
 
-        publisher_ = Publisher.object.filter(journals = journal_)
+        serializer = PublisherSerializer(publisher_s, many = True)
 
-        return publisher_
-
+        return Response(
+            data = serializer.data,
+        )
 
 class PublisherView(APIView):
     def get(self, request: Request, p_uuid: UUID) -> Response:
