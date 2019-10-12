@@ -1,0 +1,24 @@
+language:
+  python
+
+python:
+  - '3.6.1'
+
+install:
+  - pip install requirements.txt
+
+script:
+  - coverage run gateway/manage.py test
+  - coverage report -m
+
+  - coverage run user/manage.py test
+  - coverage report -m
+
+  - coverage run article/manage.py test
+  - coverage report -m
+
+  - coverage run journal/manage.py test
+  - coverage report -m
+
+  - coverage run publisher/manage.py test
+  - coverage report -m
