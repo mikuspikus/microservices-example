@@ -1,5 +1,7 @@
 from .models import CustomUser
+
 from rest_framework import serializers
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +13,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict) -> CustomUser:
         password = validated_data.pop('password')
 
-        new_user = CustomUser.objects.create(validated_data)
+        new_user = CustomUser.objects.create(**validated_data)
         new_user.set_password(password)
         
         new_user.save()
