@@ -15,7 +15,7 @@ class BaseRequester():
     logger = logging.getLogger(name = 'requester')
 
     URLS = {
-        'USER' : 'http://localhost:8081/auth/' if DEBUG else '',
+        'USER' : 'http://localhost:8081/user/' if DEBUG else '',
         'ARTICLE' : 'http://localhost:8082/articles/' if DEBUG else '',
         'JOURNAL' : 'http://localhost:8083/journals/' if DEBUG else '',
         'PUBLISHER' : 'http://localhost:8084/publishers/' if DEBUG else '',
