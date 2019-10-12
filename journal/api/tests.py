@@ -88,7 +88,7 @@ class JournalAPIViewTestCase(APITestCase):
         self.assertEqual(202, response.status_code)
 
     def test_delete_journal(self):
-        uuid_ = self.article.uuid
+        uuid_ = self.journal.uuid
         response = self.client.delete(self.url + f'{uuid_}/')
 
         self.assertEqual(204, response.status_code)

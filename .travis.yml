@@ -8,27 +8,22 @@ install:
   - pip install -r requirements.txt
 
 script:
-  # - coverage run gateway/manage.py test
-  # - coverage report -m
   - cd gateway
-  - python manage.py test
-
-  # - coverage run user/manage.py test
-  # - coverage report -m
+  - coverage run gateway/manage.py test
+  - coverage report -m
+  
   - cd ../user
-  - python manage.py test
+  - coverage run manage.py test
+  - coverage report -m
 
-  # - coverage run article/manage.py test
-  # - coverage report -m
   - cd ../article
-  - python manage.py test
+  - coverage run manage.py test
+  - coverage report -m
 
-  # - coverage run journal/manage.py test
-  # - coverage report -m
   - cd ../journal
-  - python manage.py test
+  - coverage run manage.py test
+  - coverage report -m
 
-  # - coverage run publisher/manage.py test
-  # - coverage report -m
   - cd ../publisher
-  - python manage.py test
+  - coverage run manage.py test
+  - coverage report -m
