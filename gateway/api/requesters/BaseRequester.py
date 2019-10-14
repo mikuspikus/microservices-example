@@ -23,57 +23,142 @@ class BaseRequester():
 
     TOKENS = {}
 
+    def info(self, request: Request, msg: str = None) -> None:
+        self.logger.info(
+            self.formatter.format(
+                method=request.method,
+                url=request._request.get_raw_uri(),
+                content_type=request.content_type,
+                msg=msg
+            )
+        )
+
+    def exception(self, request: Request, msg: str = None) -> None:
+        self.logger.exception(
+            self.formatter.format(
+                method=request.method,
+                url=request._request.get_raw_uri(),
+                content_type=request.content_type,
+                msg=msg
+            )
+        )
+
     def get(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.logger.info('{request_type} {url} {headers}', 'GET', url, headers)
+            self.info(
+                '{request_type} {url} {headers}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers = headers
+                )
+            )
             response = requests.get(url = url, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception('{request_type} {url} {headers} {message}', 'GET', url, headers, str(error))
+            self.logger.exception(
+                '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers =headers, 
+                    message = str(error)
+                )
+            )
             return None
 
         return response
 
     def post(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.logger.info('{request_type} {url} {headers}', 'POST', url, headers)
+            self.info(
+                '{request_type} {url} {headers}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers = headers
+                )
+            )
             response = requests.post(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception('{request_type} {url} {headers} {message}', 'POST', url, headers, str(error))
+            self.logger.exception(
+                '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers =headers, 
+                    message = str(error)
+                )
+            )
             return None
 
         return response
 
     def delete(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.logger.info('{request_type} {url} {headers}', 'DELETE', url, headers)
+            self.info(
+                '{request_type} {url} {headers}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers = headers
+                )
+            )
             response = requests.delete(url = url, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception('{request_type} {url} {headers} {message}', 'DELETE', url, headers, str(error))
+            self.logger.exception(
+                '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers =headers, 
+                    message = str(error)
+                )
+            )
             return None
 
         return response
 
     def patch(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.logger.info('{request_type} {url} {headers}', 'PATCH', url, headers)
+            self.info(
+                '{request_type} {url} {headers}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers = headers
+                )
+            )
             response = requests.patch(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception('{request_type} {url} {headers} {message}', 'PATCH', url, headers, str(error))
+            self.logger.exception(
+                '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers =headers, 
+                    message = str(error)
+                )
+            )
             return None
 
         return response
 
     def put(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.logger.info('{request_type} {url} {headers}', 'PUT', url, headers)
+            self.info(
+                '{request_type} {url} {headers}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers = headers
+                )
+            )
             response = requests.put(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception('{request_type} {url} {headers} {message}', 'PUT', url, headers, str(error))
+            self.logger.exception(
+                '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PUT', 
+                    url = url, 
+                    headers =headers, 
+                    message = str(error)
+                )
+            )
             return None
 
         return response
@@ -152,12 +237,25 @@ class BaseRequester():
         '''
         '''
         if response is None:
+            self.info(
+                f'no valid response from {response.url}'
+            )
             return ({'errors' : f'no valid response from {response.url}'}, 504)
 
         try:
-            self.logger.info('{task_name} {code}', task_name, response.status_code)
+            self.info(
+                '{task_name} {code}'.format(
+                    task_name = task_name, 
+                    code = response.status_code
+                )
+            )
             return response.json(), response.status_code
 
         except ValueError as error:
-            self.logger.exception('{method_name} {message}', task_name, error.msg)
+            self.exception(
+                '{task_name} {code}'.format(
+                    task_name = task_name, 
+                    code = response.status_code
+                )
+            )
             return response.text, response.status_code
