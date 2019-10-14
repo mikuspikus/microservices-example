@@ -36,7 +36,7 @@ class BaseView(APIView):
             )
         )
 
-class CustomAuthToken(ObtainAuthToken):
+class CustomAuthToken(BaseView, ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         self.info(request)
 
