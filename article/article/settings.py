@@ -76,6 +76,8 @@ renderer_classes = ['rest_framework.renderers.JSONRenderer']
 if DEBUG:
     renderer_classes += ['rest_framework.renderers.BrowsableAPIRenderer']
 
+DEFAULT_PAGE_LIMIT = 25
+
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES' : renderer_classes,
     'DEFAULT_PAGINATION_CLASSES' : 'rest_framework.pagination.LimitOffsetPagination',

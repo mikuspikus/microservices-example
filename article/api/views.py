@@ -4,11 +4,17 @@ from .serializers import ArticleSerializer
 from rest_framework import status, generics
 from rest_framework.views import Request, Response, APIView
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
 
 from django.core.exceptions import FieldError
+from django.conf import settings
 
 from uuid import UUID
 import logging
+
+
+DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
+
 
 class BaseView(APIView):
     logger = logging.getLogger(name = 'article.api.views')
@@ -35,6 +41,14 @@ class BaseView(APIView):
         )
 
 class ArticlesView(BaseView):
+    def __clear_request_params(self, request: Request) -> dict:
+        params = request.query_params.dict()
+
+        if 'limit' in params: params.pop('limit')
+        if 'offset' in params: params.pop('offset')
+
+        return params
+
     def post(self, request: Request) -> Response:
         self.info(request)
         serializer = ArticleSerializer(data = request.data)
@@ -56,7 +70,7 @@ class ArticlesView(BaseView):
     def get(self, request: Request) -> Response:
         self.info(request)
 
-        params = request.query_params.dict()
+        params = self.__clear_request_params(request)
 
         author = ''
         if 'author' in params:
@@ -84,7 +98,11 @@ class ArticlesView(BaseView):
                 status = status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = ArticleSerializer(article_s, many = True)
+        paginator = LimitOffsetPagination()
+        paginator.default_limit = DEFAULT_PAGE_LIMIT
+        paged_article_s = paginator.paginate_queryset(article_s, request)
+
+        serializer = ArticleSerializer(paged_article_s, many = True)
 
         return Response(
             data = serializer.data,

@@ -1,5 +1,8 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
+from rest_framework.pagination import LimitOffsetPagination
+
+from django.conf import settings
 
 import logging
 from sys import stdout
@@ -8,6 +11,9 @@ from uuid import UUID
 
 from .serializers import JournalSerializer
 from .models import Journal
+
+
+DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
 
 
 class BaseView(APIView):
@@ -37,6 +43,7 @@ class BaseView(APIView):
 
 class JournalsView(BaseView, generics.ListCreateAPIView):
     serializer_class = JournalSerializer
+    pagination_class = LimitOffsetPagination
     queryset = Journal.objects.all()
 
 

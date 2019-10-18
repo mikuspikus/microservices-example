@@ -1,6 +1,7 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
 
 import logging
 
@@ -10,6 +11,11 @@ from .serializers import PublisherSerializer
 from .models import Publisher
 
 from django.core.exceptions import FieldError
+from django.conf import settings
+
+
+DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
+
 
 class BaseView(APIView):
     logger = logging.getLogger(name = 'views')
@@ -36,6 +42,14 @@ class BaseView(APIView):
         )
 
 class PublishersView(BaseView):
+    def __clear_request_params(self, request: Request) -> dict:
+        params = request.query_params.dict()
+
+        if 'limit' in params: params.pop('limit')
+        if 'offset' in params: params.pop('offset')
+
+        return params
+
     def post(self, request: Request) -> Response:
         self.info(request)
 
@@ -57,9 +71,11 @@ class PublishersView(BaseView):
 
     def get(self, request: Request) -> Response:
         self.info(request)
+
+        params = self.__clear_request_params(request)
         
         try:
-            publisher_s = Publisher.objects.filter(**request.query_params.dict())
+            publisher_s = Publisher.objects.filter(**params)
         
         except FieldError as error:
             self.exception(request, f'{error}')
@@ -68,7 +84,11 @@ class PublishersView(BaseView):
                 status = status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = PublisherSerializer(publisher_s, many = True)
+        paginator = LimitOffsetPagination()
+        paginator.default_limit = DEFAULT_PAGE_LIMIT
+        paged_publisher_s = paginator.paginate_queryset(publisher_s, request)
+
+        serializer = PublisherSerializer(paged_publisher_s, many = True)
 
         return Response(
             data = serializer.data,

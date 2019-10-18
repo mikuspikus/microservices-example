@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -6,11 +6,16 @@ from rest_framework.views import APIView, Request, Response
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from rest_framework.pagination import LimitOffsetPagination
 
 from api.serializers import CustomUserSerializer
 from api.models import CustomUser
 
 from logging import Logger
+
+
+DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
+
 
 class BaseView(APIView):
     logger = Logger(name = 'views')
@@ -114,7 +119,12 @@ class UsersView(BaseView):
         self.info(request)
 
         user_s = CustomUser.objects.all()
-        serializer = CustomUserSerializer(user_s, many = True)
+
+        paginator = LimitOffsetPagination()
+        paginator.default_limit = DEFAULT_PAGE_LIMIT
+        paged_user_s = paginator.paginate_queryset(user_s, request)
+
+        serializer = CustomUserSerializer(paged_user_s, many = True)
 
         return Response(
             data = serializer.data,
