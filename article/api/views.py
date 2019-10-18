@@ -64,7 +64,6 @@ class ArticlesView(BaseView):
 
         article_s = Article.objects.all()
 
-        
         if author:
             try:
                 author_id = Author.objects.get(author_uuid = author)

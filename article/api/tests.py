@@ -73,9 +73,24 @@ class ArticlesAPIViewTestCase(APITestCase):
         self.assertEqual(400, response.status_code)
 
     def test_get_valid_filter(self):
-        filter_ = '?publisher=00000000-0000-0000-0000-000000000001'
+        article_data = {
+            "title" : "First",
+            "published" : "2019-12-03",
+            "authors" : [
+                { "author_uuid" : "00000000-0000-0000-0000-000000000001" }, 
+                { "author_uuid" : "00000000-0000-0000-0000-000000000002" }, 
+                { "author_uuid" : "00000000-0000-0000-0000-000000000003" }
+            ],
+            "publisher" : "00000000-0000-0000-0000-000000000001",
+            "journal" : "00000000-0000-0000-0000-000000000001"
+        }
+
+        response = self.client.post(self.url, article_data, format = 'json')
+
+        filter_ = '?author=00000000-0000-0000-0000-000000000001'
 
         response = self.client.get(self.url + filter_)
+        print('data:', response.content)
 
         self.assertEqual(200, response.status_code)
 
@@ -107,7 +122,6 @@ class ArticleAPIViewTestCase(APITestCase):
         self.article, created = Article.objects.get_or_create(
             title = self.title,
             published = self.published,
-            publisher =self.publisher,
             journal = self.journal,
         )
 
@@ -127,7 +141,6 @@ class ArticleAPIViewTestCase(APITestCase):
         self.article, created = Article.objects.get_or_create(
             title = self.title,
             published = self.published,
-            publisher =self.publisher,
             journal = self.journal,
         )
 

@@ -7,7 +7,7 @@ class Author(models.Model):
     # author_uuid recreates with default = True
     # add id?
     # delete default?
-    author_uuid = models.UUIDField(unique = True)
+    author_uuid = models.UUIDField()
     # user-api-user
 
     class Meta:
