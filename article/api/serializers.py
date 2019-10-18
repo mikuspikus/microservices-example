@@ -44,8 +44,6 @@ class ArticleSerializer(serializers.ModelSerializer):
 
         instance.title = validated_data.get('title', instance.title)
         instance.published = validated_data.get('published', instance.published)
-
-        instance.publisher = validated_data.get('publisher', instance.publisher)
         instance.journal = validated_data.get('journal', instance.journal)
 
         if len(authors_data):
