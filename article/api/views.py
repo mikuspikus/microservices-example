@@ -55,8 +55,28 @@ class ArticlesView(BaseView):
 
     def get(self, request: Request) -> Response:
         self.info(request)
+
+        params = request.query_params.dict()
+
+        author = ''
+        if 'author' in params:
+            author = params.pop('author')
+
+        article_s = Article.objects.all()
+
+        
+        if author:
+            try:
+                author_id = Author.objects.get(author_uuid = author)
+
+            except Author.DoesNotExist:
+                return Response(data = {'errors' : 'author not found'}, status = status.HTTP_404_NOT_FOUND)
+
+
+            article_s = article_s.filter(authors__in = [author_id.id])
+
         try:
-            article_s = Article.objects.filter(**request.query_params.dict())
+            article_s = article_s.filter(**params)
         
         except FieldError as error:
             self.exception(request, f'{error}')
