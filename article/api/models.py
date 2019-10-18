@@ -4,7 +4,10 @@ import uuid as uuid_
 # Create your models here.
 class Author(models.Model):
 
-    author_uuid = models.UUIDField()
+    # author_uuid recreates with default = True
+    # add id?
+    # delete default?
+    author_uuid = models.UUIDField(unique = True)
     # user-api-user
 
     class Meta:
@@ -23,10 +26,7 @@ class Article(models.Model):
     published = models.DateField()
 
     authors = models.ManyToManyField(Author)
-
-    publisher = models.UUIDField(editable = True)
-    # models.ForeignKey(publisher-api-publisher, on_delete=models.CASCADE)
-    journal = models.UUIDField(editable = True)
+    journal = models.UUIDField()
     # models.ForeignKey(journal-api-journal, on_delete=models.CASCADE)
 
     class Meta:
