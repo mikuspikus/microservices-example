@@ -5,7 +5,7 @@ from .models import Journal, Publisher
 class JournalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Journal
-        exclude = ('publisher', )
+        exclude = ('publisher', 'id')
 
 
 class PublisherSerializer(serializers.ModelSerializer):
@@ -23,7 +23,11 @@ class PublisherSerializer(serializers.ModelSerializer):
         for journal_data in journal_s_data:
             try:
                 journal_ = Journal.objects.get(**journal_data)
-            
+                # staying here means there is journal exists and
+                # some publisher have it
+                # what should we do? raise error or take journal from publisher (bad idea)
+                raise serializers.ValidationError(f'journal {journal_data} already has a publisher')
+
             except Journal.DoesNotExist:
                 journal_ = Journal.objects.create(publisher = publisher_, **journal_data)
 
@@ -42,12 +46,13 @@ class PublisherSerializer(serializers.ModelSerializer):
             '''
             journal has reference to publisher
             so, creating new journal with reference to instance
-            or changing reference of existing journal
+            or changing reference of existing journal (bad idea)
             '''
             for j_item in journals_data:
                 try:
                     journal_ = Journal.objects.get(uuid = j_item.get('uuid'))
-                    journal_.publisher = instance
+                    # journal_.publisher = instance
+                    raise serializers.ValidationError(f'journal {journal_data} already has a publisher')
 
                 except Journal.DoesNotExist:
                     journal_ = Journal.objects.create(publisher = instance, uuid = j_item.get('uuid'))
