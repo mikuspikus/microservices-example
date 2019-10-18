@@ -80,7 +80,8 @@ DEFAULT_PAGE_LIMIT = 25
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES' : renderer_classes,
-    'DEFAULT_PAGINATION_CLASSES' : 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    "PAGE_SIZE" : '25'
 }
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
