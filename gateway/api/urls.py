@@ -2,7 +2,7 @@ from django.urls import path
 
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from api.views import UserView, ArticlesView, JournalsView, PublisherView
+from api.views import UserView, ArticlesView, JournalsView, PublisherView, ComplexView
 
 urlpatterns = [
     path('auth/', UserView.AuthenticateView.as_view(), name = 'authenticate'),
@@ -19,6 +19,9 @@ urlpatterns = [
     
     path('publishers/', PublisherView.PublishersView.as_view(), name = 'publishers'),
     path('publishers/<uuid:p_uuid>/', PublisherView.PublisherView.as_view(), name = 'publisher'),
+
+    path('users/<int:user_id>/articles/', ComplexView.UserArticlesView.as_view(), name = 'user-articles'),
+    path('users/<int:user_id>/journals/', ComplexView.UserJournalsView.as_view(), name = 'user-journals'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
