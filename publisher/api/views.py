@@ -91,7 +91,7 @@ class PublisherView(BaseView):
 
         return Response(data = serializer.data, status = status.HTTP_200_OK)
 
-    def patch(self, request: Request, p_uuid: UUID) -> Response:
+    def put(self, request: Request, p_uuid: UUID) -> Response:
         self.info(request, f'p_uuid = {p_uuid}')
 
         try:
@@ -102,6 +102,26 @@ class PublisherView(BaseView):
             return Response(status = status.HTTP_404_NOT_FOUND)
 
         serializer = PublisherSerializer(instance = publisher_, data = request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(data = serializer.data, status = status.HTTP_202_ACCEPTED)
+
+        self.exception(request, f'not valid data for serializer : {serializer.erros}')
+        return Response(data = serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request: Request, p_uuid: UUID) -> Response:
+        self.info(request, f'p_uuid = {p_uuid}')
+
+        try:
+            publisher_ = Publisher.objects.get(pk = p_uuid)
+
+        except Publisher.DoesNotExist:
+            self.exception(request, 'requested p_uuid  not found')
+            return Response(status = status.HTTP_404_NOT_FOUND)
+
+        serializer = PublisherSerializer(instance = publisher_, data = request.data, partial = True)
 
         if serializer.is_valid():
             serializer.save()
