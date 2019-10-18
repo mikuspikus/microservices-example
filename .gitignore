@@ -1171,3 +1171,6 @@ gradle-app.setting
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 
 # End of https://www.gitignore.io/api/c,c++,node,ruby,java,linux,macos,flask,python,gradle,django,csharp,windows,java-web,qtcreator,intellij+all,visualstudio,visualstudiocode
+
+# Visual Code
+.vscode
