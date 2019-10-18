@@ -13,6 +13,7 @@ from rest_framework.views import Request, Response
 
 class BaseRequester():
     logger = logging.getLogger(name = 'requester')
+    formatter = '{msg}'
 
     URLS = {
         'USER' : 'http://localhost:8081/user/' if DEBUG else '',
@@ -23,31 +24,25 @@ class BaseRequester():
 
     TOKENS = {}
 
-    def info(self, request: Request, msg: str = None) -> None:
+    def loginfo(self, msg: str = None) -> None:
         self.logger.info(
             self.formatter.format(
-                method=request.method,
-                url=request._request.get_raw_uri(),
-                content_type=request.content_type,
-                msg=msg
+                msg = msg
             )
         )
 
-    def exception(self, request: Request, msg: str = None) -> None:
+    def logexception(self, msg: str = None) -> None:
         self.logger.exception(
             self.formatter.format(
-                method=request.method,
-                url=request._request.get_raw_uri(),
-                content_type=request.content_type,
-                msg=msg
+                msg = msg
             )
         )
 
     def get(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.info(
-                '{request_type} {url} {headers}'.format(
-                    request_type = 'PUT', 
+            self.loginfo(
+                msg = '{request_type} {url} {headers}'.format(
+                    request_type = 'GET', 
                     url = url, 
                     headers = headers
                 )
@@ -55,9 +50,9 @@ class BaseRequester():
             response = requests.get(url = url, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception(
-                '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PUT', 
+            self.logexception(
+                msg = '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'GET', 
                     url = url, 
                     headers =headers, 
                     message = str(error)
@@ -69,9 +64,9 @@ class BaseRequester():
 
     def post(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.info(
-                '{request_type} {url} {headers}'.format(
-                    request_type = 'PUT', 
+            self.loginfo(
+                msg = '{request_type} {url} {headers}'.format(
+                    request_type = 'POST', 
                     url = url, 
                     headers = headers
                 )
@@ -79,9 +74,9 @@ class BaseRequester():
             response = requests.post(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception(
-                '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PUT', 
+            self.logexception(
+                msg = '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'POST', 
                     url = url, 
                     headers =headers, 
                     message = str(error)
@@ -93,9 +88,9 @@ class BaseRequester():
 
     def delete(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.info(
-                '{request_type} {url} {headers}'.format(
-                    request_type = 'PUT', 
+            self.loginfo(
+                msg = '{request_type} {url} {headers}'.format(
+                    request_type = 'DELETE', 
                     url = url, 
                     headers = headers
                 )
@@ -103,9 +98,9 @@ class BaseRequester():
             response = requests.delete(url = url, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception(
-                '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PUT', 
+            self.logexception(
+                msg = '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'DELETE', 
                     url = url, 
                     headers =headers, 
                     message = str(error)
@@ -117,9 +112,9 @@ class BaseRequester():
 
     def patch(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.info(
-                '{request_type} {url} {headers}'.format(
-                    request_type = 'PUT', 
+            self.loginfo(
+                msg = '{request_type} {url} {headers}'.format(
+                    request_type = 'PATCH', 
                     url = url, 
                     headers = headers
                 )
@@ -127,9 +122,9 @@ class BaseRequester():
             response = requests.patch(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception(
-                '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PUT', 
+            self.logexception(
+                msg = '{request_type} {url} {headers} {message}'.format(
+                    request_type = 'PATCH', 
                     url = url, 
                     headers =headers, 
                     message = str(error)
@@ -141,8 +136,8 @@ class BaseRequester():
 
     def put(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
         try:
-            self.info(
-                '{request_type} {url} {headers}'.format(
+            self.loginfo(
+                msg = '{request_type} {url} {headers}'.format(
                     request_type = 'PUT', 
                     url = url, 
                     headers = headers
@@ -151,8 +146,8 @@ class BaseRequester():
             response = requests.put(url = url, json = data, headers = headers)
 
         except requests.exceptions.RequestException as error:
-            self.logger.exception(
-                '{request_type} {url} {headers} {message}'.format(
+            self.logexception(
+                msg = '{request_type} {url} {headers} {message}'.format(
                     request_type = 'PUT', 
                     url = url, 
                     headers =headers, 
@@ -237,14 +232,14 @@ class BaseRequester():
         '''
         '''
         if response is None:
-            self.info(
-                f'no valid response from {response.url}'
+            self.loginfo(
+                msg = f'no valid response'
             )
-            return ({'errors' : f'no valid response from {response.url}'}, 504)
+            return ({'errors' : f'no valid response'}, 504)
 
         try:
-            self.info(
-                '{task_name} {code}'.format(
+            self.loginfo(
+                msg = '{task_name} {code}'.format(
                     task_name = task_name, 
                     code = response.status_code
                 )
@@ -252,8 +247,8 @@ class BaseRequester():
             return response.json(), response.status_code
 
         except ValueError as error:
-            self.exception(
-                '{task_name} {code}'.format(
+            self.logexception(
+                msg = '{task_name} {code}'.format(
                     task_name = task_name, 
                     code = response.status_code
                 )

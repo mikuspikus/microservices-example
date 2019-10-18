@@ -94,7 +94,7 @@ class PublisherRequester(BaseRequester):
 
         return response._process_response(
             response = response,
-            task_name = 'PATCH_ARTICLE'
+            task_name = 'PATCH_PUBLISHER'
         )
 
     def delete_publisher(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:

@@ -5,11 +5,17 @@ from typing import Union, Tuple, List, Any, Dict
 
 from gateway.settings import DEBUG
 from .BaseRequester import BaseRequester
+from .PublisherRequester import PublisherRequester
 
 from rest_framework.views import Request
 
+class PublisherError(Exception):
+    pass
+
 class JournalRequester(BaseRequester):
     URL = ''
+
+    publisher_requester = PublisherRequester()
 
     def __init__(self):
         self.URL = self.URLS['JOURNAL']
@@ -69,7 +75,14 @@ class JournalRequester(BaseRequester):
         )
 
     def post_journal(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
-        # check request and data
+        try:
+            is_journal_valid = self.check_journal(request, data)
+
+        except PublisherError as error:
+            return ({'errors' : str(error)}, status.HTTP_400_BAD_REQUEST)
+
+        if not PublisherError:
+            return ({'errors' : 'journal not found'}, status.HTTP_404_NOT_FOUND)
 
         response = self.post(
             url = self.URL,
@@ -82,7 +95,14 @@ class JournalRequester(BaseRequester):
         )
 
     def patch_journal(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
-        # check request and data
+        try:
+            is_journal_valid = self.check_journal(request, data)
+
+        except PublisherError as error:
+            return ({'errors' : str(error)}, status.HTTP_400_BAD_REQUEST)
+
+        if not PublisherError:
+            return ({'errors' : 'journal not found'}, status.HTTP_404_NOT_FOUND)
 
         response = self.patch(
             url = self.URL + f'{uuid}/',
@@ -109,3 +129,40 @@ class JournalRequester(BaseRequester):
             response = response,
             task_name = 'DELETE_JOURNAL'
         )
+
+    def get_publisher(self, request: Request, p_uuid: str) -> Tuple[Dict, int]:
+        self.loginfo(
+            '{task_name} {msg}'.format(
+                task_name = 'PUBLISHER_GET',
+                msg = f'getting with p_uuid = {p_uuid}'
+            )
+        )
+        p_json, code = self.publisher_requester.publisher(request, p_uuid)
+
+        return (p_json, code)
+
+    def publisher_exists(self, request: Request, p_uuid: str) -> bool:
+        self.loginfo(
+            '{task_name} {msg}'.format(
+                task_name = 'PUBLISHER_EXISTS',
+                msg = f'checking with p_uuid = {p_uuid}'
+            )
+        )
+        _, code = self.get_publisher(request, p_uuid)
+        return code == 200
+
+    def check_journal(self, request: Request, data: dict) -> bool:
+        self.loginfo(
+            msg = '{task_name} {msg}'.format(
+                task_name = 'JOURNAL_CHECK',
+                msg = 'checking journal'
+            )
+        )
+
+        try:
+            j_uuid = data['publisher']
+
+        except KeyError as error:
+            raise PublisherError(error)
+
+        return self.journals_exists(request, j_uuid)

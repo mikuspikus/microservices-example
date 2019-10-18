@@ -5,9 +5,14 @@ from typing import Union, Tuple, List, Any, Dict
 
 from gateway.settings import DEBUG
 
-from rest_framework.views import Request
+from rest_framework.views import Request, status
 
 from .BaseRequester import BaseRequester
+from .PublisherRequester import PublisherRequester
+from .JournalRequester import JournalRequester
+
+class ArticleError(Exception):
+    pass
 
 class ArticleRequester(BaseRequester):
     TOKENS = {
@@ -15,6 +20,8 @@ class ArticleRequester(BaseRequester):
     }
 
     URL = ''
+
+    journal_requester = JournalRequester()
 
     def __init__(self):
         self.URL = self.URLS['ARTICLE']
@@ -33,6 +40,27 @@ class ArticleRequester(BaseRequester):
 
         return u_json, code
 
+    def user_articles(self, request: Request, **kwargs):
+        url = self.URL
+
+        if kwargs:
+            url = url[:-1] + '?' + '&'.join(
+                [
+                    f'{arg}={value}' for arg, value in kwargs.items()
+                ]
+            )
+
+        response = self.get(
+            url = url,
+        )
+
+        response_json, code = self._process_response(
+            response = response,
+            task_name = 'USER_ARTICLES'
+        )
+
+        return (response_json, code)
+
     def articles(self, request: Request) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
@@ -41,7 +69,7 @@ class ArticleRequester(BaseRequester):
         if code != 200:
             return (u_json, code)
 
-        url += f'?ath_uuid={u_json["outer_uuid"]}'
+        url += f'?author={u_json["outer_uuid"]}'
 
         limitoffset = self._limit_offset_from_request(request)
 
@@ -74,20 +102,34 @@ class ArticleRequester(BaseRequester):
         )
 
     def post_article(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
-        # check request and data
+        try:
+            is_article_valid = self.check_article(request, data)
+
+        except ArticleError as error:
+            return ({'errors' : str(error)}, status.HTTP_400_BAD_REQUEST)
+
+        if not is_article_valid:
+            return ({'errors' : 'journal not found'}, status.HTTP_404_NOT_FOUND)
 
         response = self.post(
             url = self.URL,
             data = data
         )
 
-        return response._process_response(
+        return self._process_response(
             response = response,
             task_name = 'POST_ARTICLE'
         )
 
     def patch_article(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
-        # check request and data
+        try:
+            is_article_valid = self.check_article(request, data)
+
+        except ArticleError as error:
+            return ({'errors' : str(error)}, status.HTTP_400_BAD_REQUEST)
+
+        if not is_article_valid:
+            return ({'errors' : 'journal not found'}, status.HTTP_404_NOT_FOUND)
 
         response = self.patch(
             url = self.URL + f'{uuid}/',
@@ -114,3 +156,53 @@ class ArticleRequester(BaseRequester):
             response = response,
             task_name = 'DELETE_ARTICLE'
         )
+
+
+    def journals_exists(self, request: Request, j_uuid: str) -> bool:
+        self.loginfo(
+            '{task_name} {msg}'.format(
+                task_name = 'JOURNAL_EXISTS',
+                msg = f'checking with j_uuid = {j_uuid}'
+            )
+        )
+        _, code = self.journal_requester.journal(request, j_uuid)
+
+        return code == 200
+
+    # def add_journal_to_publisher(self, request: Request, p_uuid: str, j_uuid: str) -> Tuple[Dict, int]:
+    #     self.loginfo(
+    #         msg = '{task_name} {msg}'.format(
+    #             task_name = 'ADD_JOURNAL_TO_PUBISHER',
+    #             msg = f'adding j_uuid = {j_uuid} to p_uuid = {p_uuid}'
+    #         )
+    #     )
+
+    #     publisher_json, code = self.get_publisher(request, data)
+    #     j_uuid = data['journal']
+
+    #     if filter(lambda x : x['uuid'] == j_uuid):
+    #         # j_uuid нет в списке, значит надо добавить его к "издателю"
+    #         publisher_json['journals'].append(
+    #             {'uuid' : data['publisher']}
+    #         )
+
+    #         return self.publisher_requester.patch_publisher(request, publisher_json)
+
+    #     else:
+    #         return (publisher_json, code)
+
+    def check_article(self, request: Request, data: dict) -> bool:
+        self.loginfo(
+            msg = '{task_name} {msg}'.format(
+                task_name = 'ARTICLE_CHECK',
+                msg = 'checking article'
+            )
+        )
+
+        try:
+            j_uuid = data['journal']
+
+        except KeyError as error:
+            raise ArticleError(error)
+
+        return self.journals_exists(request, j_uuid)
