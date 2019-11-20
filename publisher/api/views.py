@@ -2,6 +2,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.renderers import TemplateHTMLRenderer
 
 import logging
 
@@ -15,7 +16,6 @@ from django.conf import settings
 
 
 DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
-
 
 class BaseView(APIView):
     logger = logging.getLogger(name = 'views')
@@ -40,6 +40,17 @@ class BaseView(APIView):
                 msg=msg
             )
         )
+
+class PublisherHTMLView(BaseView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'api/form.html'
+
+    def get(self, request: Request, format = 'html') -> Response:
+        self.info(request)
+        serializer = PublisherSerializer()
+        context = {'serializer' : serializer}
+        return Response(data = context, status = status.HTTP_200_OK)
+
 
 class PublishersView(BaseView):
     def __clear_request_params(self, request: Request) -> dict:

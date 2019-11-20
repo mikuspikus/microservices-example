@@ -7,6 +7,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 
 from api.serializers import CustomUserSerializer
 from api.models import CustomUser
@@ -42,7 +43,7 @@ class BaseView(APIView):
         )
 
 class CustomAuthToken(BaseView, ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args, **kwargs) -> Response:
         self.info(request)
 
         serializer = self.serializer_class(data = request.data, context = {'request': request})
@@ -51,13 +52,12 @@ class CustomAuthToken(BaseView, ObtainAuthToken):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user = user)
 
-        return Response({'token': token.key, 'user_id': user.pk, 'uuid' : user.outer_uuid}, status = status.HTTP_200_OK)
+        return Response({'token': token.key, 'user_id': user.pk, 'uuid' : user.outer_uuid, 'username' : user.username}, status = status.HTTP_200_OK)
 
 class UserInfoView(BaseView):
-
     permission_classes = (IsAuthenticated, )
 
-    def get(self, request: Request, *args, **kwargs) -> Response:
+    def get(self, request: Request, format: str = 'json') -> Response:
         self.info(request, request.user)
 
         if request.user is None:
@@ -95,7 +95,7 @@ class UserInfoView(BaseView):
 
 
 class UsersView(BaseView):
-    permission_classes = (IsAuthenticated, )
+    #permission_classes = (IsAuthenticated, )
 
     def post(self, request: Request) -> Response:
         self.info(request)

@@ -15,21 +15,24 @@ class PublisherSerializer(serializers.ModelSerializer):
         model = Publisher
         fields = ('uuid', 'name', 'editor', 'address', 'journals' )
 
+        extra_kwargs = {'journals': {'allow_null': True, 'required': False}}
+
     def create(self, validated_data: dict) -> Publisher:
         journal_s_data = validated_data.pop('journals')
 
         publisher_ = Publisher.objects.create(**validated_data)
 
-        for journal_data in journal_s_data:
-            try:
-                journal_ = Journal.objects.get(**journal_data)
-                # staying here means there is journal exists and
-                # some publisher have it
-                # what should we do? raise error or take journal from publisher (bad idea)
-                raise serializers.ValidationError(f'journal {journal_data} already has a publisher')
+        if journal_s_data:
+            for journal_data in journal_s_data:
+                try:
+                    journal_ = Journal.objects.get(**journal_data)
+                    # staying here means there is journal exists and
+                    # some publisher have it
+                    # what should we do? raise error or take journal from publisher (bad idea)
+                    raise serializers.ValidationError(f'journal {journal_data} already has a publisher')
 
-            except Journal.DoesNotExist:
-                journal_ = Journal.objects.create(publisher = publisher_, **journal_data)
+                except Journal.DoesNotExist:
+                    journal_ = Journal.objects.create(publisher = publisher_, **journal_data)
 
         return publisher_
 
@@ -42,7 +45,7 @@ class PublisherSerializer(serializers.ModelSerializer):
         instance.editor = validated_data.get('editor', instance.editor)
         instance.address = validated_data.get('address', instance.address)
 
-        if len(journals_data):
+        if journals_data:
             '''
             journal has reference to publisher
             so, creating new journal with reference to instance

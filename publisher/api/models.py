@@ -8,7 +8,6 @@ class Publisher(models.Model):
 
     editor = models.CharField(max_length = 128)
     address = models.CharField(max_length = 128)
-    
 
 class Journal(models.Model):
     uuid = models.UUIDField()

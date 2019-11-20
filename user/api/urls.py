@@ -12,4 +12,12 @@ urlpatterns = [
     path('auth/', views.CustomAuthToken.as_view(), name = 'authorization')
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+
+# html_urlpatterns = [
+#     path('html/auth/', views.AuthHTMLView.as_view(), name = 'html-authorization'),
+#     path('html/info/', views.InfoHTMLView.as_view(), name = 'html-info'),
+#     path('html/register/', views.RegisterHTMLView.as_view(), name = 'html-register'),
+#     path('html/users/<int: user_id>', views.RegisterHTMLView.as_view(), name = 'html-user'),
+# ]
+
+# urlpatterns += format_suffix_patterns(html_urlpatterns, allowed = ('html'))

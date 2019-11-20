@@ -17,7 +17,7 @@ DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
 
 
 class BaseView(APIView):
-    logger = logging.getLogger(name = 'article.api.views')
+    logger = logging.getLogger(name = 'views')
     formatter = '{method} : {url} : {content_type} : {msg}'
 
     def info(self, request: Request, msg: str = None) -> None:
