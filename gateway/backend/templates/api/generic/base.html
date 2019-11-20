@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+{% load rest_framework %}
+
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <meta http-equiv = "X-UA-Compatible" content = "IE = edge">
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1">
+    <meta name = "descritpion" content = "">
+    <meta name = "author" content = "">
+
+    <link href = "/static/bootstrap/css/bootstrap.min.css" rel = "stylesheet">
+
+    <!--
+        Костыль для navbar
+    -->
+    <style type = "text/css">
+    body { padding-top: 50px; }
+    @media screen and (max-width: 768px) {
+      body { padding-top: 0px; }
+    }
+    </style>
+    <!--
+        Костыль для navbar
+    -->
+
+    <title>
+    {% block title %}
+      Example of microservice implementation with Django 2 and DRF
+    {% endblock title %}
+    </title>
+  
+  </head>
+  <body>
+    <nav class = "navbar navbar-inverse-lg navbar-light navbar-fixed-top" role = "navigation">
+      <a class="navbar-brand" href="#">
+      {% block page_title %}
+        Example of microservice implementation with Django 2 and DRF
+      {% endblock page_title %}
+      </a>
+      <div class = "container-fluid">
+        <div class = "navbar-header">
+          <button type = "button" class = "navbar-toggle collapsed" data-toggle = "collapse" data-target = ".navbar-collapse">
+            <span class = "sr-only">Toggle navigation</span>
+            <span class = "icon-bar"></span>
+            <span class = "icon-bar"></span>
+            <span class = "icon-bar"></span>
+          </button>
+          <!--
+          <a class = "navbar-brand" href = "/user/">Rango</a>
+          <a class = "navbar-brand" href = "/rango/">Rango</a>
+          -->
+        </div>
+
+        <div class = "collapse navbar-collapse">
+          <ul class = "nav navbar-nav navbar-right">
+            <li class = "nav-item active">
+              <a class = "nav-link" href = "{% url 'index' %}">Home</a>
+            </li>
+
+            <li class = "nav-item active">
+            {% if user.is_authenticated %}
+            <li class = "nav-item active">
+              <a class = "nav-link" href = "{% url 'info' %}">Profile</a>
+            </li>
+
+            <li class = "nav-item active">
+              <a class = "nav-link" href = "{% url 'logout' %}">Logout</a>
+            </li>
+
+            {% else %}
+            <li class = "nav-item active">
+              <a class = "nav-link" href = "{% url 'authenticate' %}">Login</a>
+            </li>
+            <li class = "nav-item active">
+              <a class = "nav-link" href = "{% url 'register' %}">Register</a>
+            </li>
+            {% endif %}
+            </li>
+
+            <li class = "nav-item">
+              <span class="navbar-text justify-content-end">
+                {% if user.is_authenticated %}
+                Welcome, {{ user.username }}
+                {% else %}
+                Welcome
+                {% endif %}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class = "container-fluid">
+      <div class = "row">
+        <div class = "col-sm-3 col-md-2 sidebar">
+          {% block side_block %}
+
+          <ul class = "nav nav-sidebar">
+            <li>
+              <a href = "{% url 'users' %}">Users</a>
+            </li>
+
+            <li>
+              <a href = "{% url 'articles' %}">Articles</a>
+            </li>
+
+            <li>
+              <a href = "{% url 'journals' %}">Journals</a>
+            </li>
+
+            <li>
+              <a href = "{% url 'publishers' %}">Publishers</a>
+            </li>
+          </ul>
+
+          {% endblock side_block %}
+        </div>
+        <div class = "col-sm-9 col-md-10 main">
+            <div>
+              {% block body_block %}
+              {% endblock body_block %}
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <script src = "/static/jquery/js/jquery-3.4.1.min.js"></script>
+    <script src = "/static/bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

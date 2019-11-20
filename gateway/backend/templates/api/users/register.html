@@ -1,0 +1,14 @@
+{% extends 'api/generic/base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Register
+{% endblock page_title %}
+
+{% block body_block %}
+  <form action="{% url 'register' %}" method="POST">
+    {% csrf_token %}
+    {{ register_form | safe }}
+    <input type = "submit" class = "btn btn-danger" value = "Register">
+  </form>
+{% endblock body_block %}

@@ -1,0 +1,41 @@
+{% extends 'api/generic/base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Publishers
+{% endblock page_title %}
+
+{% block body_block %}
+
+{% if p_form %}
+  <form action="{% url 'publishers' %}" method="POST">
+    {% csrf_token %}
+    {{ p_form | safe }}
+    <input type = "submit" class = "btn btn-danger" value = "Add publisher">
+  </form>
+{% endif %}
+
+<table class="table table table-striped table-hover">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">UUID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Editor</th>
+      <th scope="col">Address</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for publisher in publishers %}
+    <tr>
+      <td>{{ publisher.uuid }}</td>
+      <td><a href = "{% url 'publisher' publisher.uuid %}">{{ publisher.name }}</a></td>
+      <td>{{ publisher.editor }}</td>
+      <td>{{ publisher.address }}</td>
+  {% empty %}
+    <tr>
+      <td colspan = "4">No publishers</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock body_block %}

@@ -1,0 +1,32 @@
+{% extends 'api/generic/base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Journals
+{% endblock page_title %}
+
+{% block body_block %}
+<table class="table table table-striped table-hover">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">UUID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Foundation</th>
+      <th scope="col">Publisher UUID</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for journal in journals %}
+    <tr>
+      <td>{{ journal.uuid }}</td>
+      <td><a href = "{% url 'journal' journal.uuid %}">{{ journal.name }}</a></td>
+      <td>{{ journal.foundation }}</td>
+      <td><a href = "{% url 'publisher' journal.publisher %}">{{ journal.publisher }}</a></td>
+  {% empty %}
+    <tr>
+      <td colspan = "4">No journals</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock body_block %}

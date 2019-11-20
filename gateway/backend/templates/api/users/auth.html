@@ -1,0 +1,16 @@
+{% extends 'api/generic/base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Login
+{% endblock page_title %}
+
+{% block body_block %}
+  {% if auth_form %}
+  <form action="{% url 'authenticate' %}" method="POST">
+    {% csrf_token %}
+    {{ auth_form | safe }}
+    <input type = "submit" class = "btn btn-danger" value = "Login">
+  </form>
+  {% endif %}
+{% endblock body_block %}

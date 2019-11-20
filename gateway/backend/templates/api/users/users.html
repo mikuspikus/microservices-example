@@ -1,0 +1,30 @@
+{% extends 'api/generic/base.html' %}
+{% load static %}
+
+{% block page_title %}
+  Users
+{% endblock page_title %}
+
+{% block body_block %}
+<table class="table table table-striped table-hover">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Username</th>
+      <th scope="col">UUID</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for user in users %}
+    <tr>
+      <th scope = "row">{{ user.id }}</th>
+      <td><a href = "{% url 'user' user.id %}">{{ user.username }}</a></td>
+      <td>{{ user.outer_uuid }}</td>
+  {% empty %}
+    <tr>
+      <td colspan = "3">No users</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock body_block %}
