@@ -41,17 +41,6 @@ class BaseView(APIView):
             )
         )
 
-class PublisherHTMLView(BaseView):
-    renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'api/form.html'
-
-    def get(self, request: Request, format = 'html') -> Response:
-        self.info(request)
-        serializer = PublisherSerializer()
-        context = {'serializer' : serializer}
-        return Response(data = context, status = status.HTTP_200_OK)
-
-
 class PublishersView(BaseView):
     def __clear_request_params(self, request: Request) -> dict:
         params = request.query_params.dict()

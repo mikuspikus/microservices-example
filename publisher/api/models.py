@@ -11,5 +11,5 @@ class Publisher(models.Model):
 
 class Journal(models.Model):
     uuid = models.UUIDField()
-    publisher = models.ForeignKey(Publisher, related_name = "journals", on_delete = models.CASCADE)
+    publisher = models.ForeignKey(Publisher, related_name = "journals", on_delete = models.CASCADE, null = True)
 

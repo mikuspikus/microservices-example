@@ -7,7 +7,7 @@ class Journal(models.Model):
     name = models.CharField(max_length = 128, unique = True)
 
     foundation = models.DateField()
-    publisher = models.UUIDField()
+    publisher = models.UUIDField(null = True)
 
     def __str__(self) -> str:
         return self.name
