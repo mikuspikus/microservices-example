@@ -2,9 +2,11 @@ import requests
 from typing import Union, Tuple, List, Any, Dict
 
 from gateway.settings import DEBUG
-from .BaseRequester import BaseRequester
+from .BaseRequester import BaseRequester, CustomCurcuitBreaker
 
 from rest_framework.views import Request
+
+UserCB = CustomCurcuitBreaker()
 
 class UserRequester(BaseRequester):
     TOKENS = {
@@ -19,35 +21,7 @@ class UserRequester(BaseRequester):
     def __init__(self):
         self.URL = self.URLS['USER']
 
-    def html_authenticate(self) -> Tuple[str, int]:
-        response = self.get(
-            url = self.URL + self.TOKENS['html'] + self.TOKENS['auth']
-        )
-
-        return self._process_response(response = response, task_name = 'HTML-AUTHENTICATE')
-
-    def html_register(self) -> Tuple[str, int]:
-        response = self.get(
-            url = self.URL + self.TOKENS['html'] + self.TOKENS['register']
-        )
-
-        return self._process_response(response = response, task_name = 'HTML-REGISTER')
-
-    def html_info(self) -> Tuple[str, int]:
-        response = self.get(
-            url = self.URL + self.TOKENS['html'] + self.TOKENS['info']
-        )
-
-        return self._process_response(response = response, task_name = 'HTML-INFO')
-
-    def html_user(self) -> Tuple[str, int]:
-        response = self.get(
-            url = self.URL + self.TOKENS['html'] + self.TOKENS['users'] + f'{id_}/',
-            headers = self.authenticate_header(request),
-        )
-
-        return self._process_response(response = response, task_name = 'HTML-USER')
-
+    @UserCB
     def authenticate(self, data: dict) -> Tuple[Dict[str, str], int]:
         response = self.post(
             url = self.URL + self.TOKENS['auth'],
@@ -56,6 +30,7 @@ class UserRequester(BaseRequester):
 
         return self._process_response(response = response, task_name = 'AUTHENTICATE')
 
+    @UserCB
     def register(self, data: dict) -> Tuple[Dict, int]:
         response = self.post(
             url = self.URL + self.TOKENS['register'],
@@ -64,6 +39,7 @@ class UserRequester(BaseRequester):
 
         return self._process_response(response = response, task_name = 'REGISTER')
 
+    @UserCB
     def info(self, request: Request) -> Tuple[Dict, int]:
         response = self.get(
             url = self.URL + self.TOKENS['info'],
@@ -72,6 +48,7 @@ class UserRequester(BaseRequester):
 
         return self._process_response(response = response, task_name = 'INFO')
 
+    @UserCB
     def users(self, request: Request, limit_offset: (int, int) = None) -> Tuple[Dict, int]:
         url = self.URL + self.TOKENS['users']
 
@@ -85,6 +62,7 @@ class UserRequester(BaseRequester):
 
         return self._process_response(response = response, task_name = 'USERS')
 
+    @UserCB
     def user(self, request: Request, id_: int) -> Tuple[Dict, int]:
         response = self.get(
             url = self.URL + self.TOKENS['users'] + f'{id_}/',
@@ -93,6 +71,7 @@ class UserRequester(BaseRequester):
 
         return self._process_response(response = response, task_name = 'USER')
 
+    @UserCB
     def delete(self, request: Request) -> Tuple[Dict, int]:
         info_json, code = self.info(token  = token)
 

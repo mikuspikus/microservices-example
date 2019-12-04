@@ -2,36 +2,32 @@ from rest_framework.views import APIView, Request, Response, status
 
 import logging
 from uuid import UUID
+from circuitbreaker import CircuitBreakerError
 
-from api.requesters.ArticleRequester import ArticleRequester
-from api.requesters.UserRequester import UserRequester
-from api.requesters.JournalRequester import JournalRequester
-
+from api.requesters.ComplexRequester import ComplexRequester
 from api.permissions import IsAuthenticatedByAuthenticateService
 
 from .BaseView import BaseView
 
 class BaseComplexView(BaseView):
-    a_requester = ArticleRequester()
-    u_requester = UserRequester()
-    j_requester = JournalRequester()
+    complex_requster = ComplexRequester()
+    
+    _ARTICLESERVICE_ERROR = '\'article\' service responded with error'
+    _USERSERVICE_ERROR = '\'user\' service responded with error'
+    _JOURNALSERVICE_ERROR = '\'journal\' service responded with error'
+    _PUBLISHERSERVICE_ERROR = '\'publisher\' service responded with error'
+
 
 class UserArticlesView(BaseComplexView):
     permission_classes = (IsAuthenticatedByAuthenticateService, )
 
     def get(self, request: Request, user_id: int) -> Response:
         self.info(request)
-
-        u_json, code = self.u_requester.user(request = request, id_ = user_id)
-
-        if code != 200:
-            return Response(data = {'errors' : 'user not found'}, status = status.HTTP_404_NOT_FOUND)
-
-        u_uuid = u_json['outer_uuid']
-
-        response_json, code = self.a_requester.user_articles(request, author = u_uuid)
+        
+        response_json, code = self.complex_requster.user_articles(request = request, user_id = user_id)
 
         return Response(response_json, status = code)
+
 
 class UserJournalsView(BaseComplexView):
     permission_classes = (IsAuthenticatedByAuthenticateService, )
@@ -39,27 +35,24 @@ class UserJournalsView(BaseComplexView):
     def get(self, request: Request, user_id: int) -> Response:
         self.info(request)
 
-        u_json, code = self.u_requester.user(request, id_ = user_id)
+        response_json, code = self.complex_requster.user_journals(request, user_id)
 
-        if code != 200:
-            return Response(data = {'errors' : 'user not found'}, status = status.HTTP_404_NOT_FOUND)
+        return Response(data = response_json, status = code)
 
-        u_uuid = u_json['outer_uuid']
-        arts_json, code = self.a_requester.user_articles(request, author = u_uuid)
 
-        if code != 200:
-            return Response(data = {'errors' : f'articles for user : \'{u_uuid}\' not found'}, status = status.HTTP_404_NOT_FOUND)
+class ArticleAndJournalView(BaseComplexView):
+    def post(self, request: Request) -> Response:
+        self.info(request)
 
-        journals = []
+        response_json, code = self.complex_requster.journal_and_article(request, request.data)
 
-        for art_json in arts_json:
-            j_uuid = art_json['journal']
+        return Response(data = response_json, status = code)
 
-            journal_json, code = self.j_requester.journal(request, j_uuid)
+class JournalAndPublisherView(BaseComplexView):
 
-            if code != 200:
-                journal_json = {'errors' : {f'journal with uuid = \'{j_uuid}\' not found'}}
+    def post(self, request: Request) -> Response:
+        self.info(request)
 
-            journals.append(journal_json)
+        response_json, code = self.complex_requster.journal_and_publisher(request, request.data)
 
-        return Response(data = journals, status = status.HTTP_200_OK)
+        return Response(data = response_json, status = code)

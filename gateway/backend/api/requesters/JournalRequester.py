@@ -1,16 +1,18 @@
-import requests
+from circuitbreaker import CircuitBreakerError
 import json
 from logging import Logger
 from typing import Union, Tuple, List, Any, Dict
 
 from gateway.settings import DEBUG
-from .BaseRequester import BaseRequester
+from .BaseRequester import BaseRequester, CustomCurcuitBreaker
 from .PublisherRequester import PublisherRequester
 
 from rest_framework.views import Request, status
 
 class PublisherError(Exception):
     pass
+
+JournalCB = CustomCurcuitBreaker()
 
 class JournalRequester(BaseRequester):
     URL = ''
@@ -34,6 +36,7 @@ class JournalRequester(BaseRequester):
 
         return u_json, code
 
+    @JournalCB
     def journals(self, request: Request) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
@@ -51,9 +54,14 @@ class JournalRequester(BaseRequester):
         if limitoffset:
             url += f'&limit={limitoffset[0]}&offset={limitoffset[1]}'
 
-        response = self.get(
-            url = url,
-        )
+        try:
+            response = self.get(
+                url = url,
+            )
+
+        except CircuitBreakerError:
+            self.logexception(self.SERVICE_ERROR_MSG)
+            return ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         response_json, code = self._process_response(
             response = response,
@@ -66,36 +74,45 @@ class JournalRequester(BaseRequester):
 
         return (response_json, response.status_code)
 
+    @JournalCB
     def journal(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
-        response = self.get(
-            url = self.URL + f'{uuid}/'
-        )
+        try:
+            response = self.get(
+                url = self.URL + f'{uuid}/'
+            )
+
+        except CircuitBreakerError:
+            self.logexception(self.SERVICE_ERROR_MSG)
+            return ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
+
 
         return self._process_response(
             response = response,
             task_name = 'JOURNAL'
         )
 
+    @JournalCB
     def post_journal(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
-        try:
-            is_journal_valid = self.check_journal(request, data)
+        # try:
+        #     is_journal_valid = self.check_journal(request, data)
 
-        except PublisherError as error:
-            return ({'errors' : str(error)}, status.HTTP_400_BAD_REQUEST)
+        # except PublisherError as error:
+        #     return ({'error' : str(error)}, status.HTTP_400_BAD_REQUEST)
 
-        if not PublisherError:
-            return ({'errors' : 'journal not found'}, status.HTTP_404_NOT_FOUND)
+        # if not is_journal_valid:
+        #     return ({'error' : 'publisher not found'}, status.HTTP_404_NOT_FOUND)
 
         response = self.post(
             url = self.URL,
             data = data
         )
 
-        return response._process_response(
+        return self._process_response(
             response = response,
             task_name = 'POST_JOURNAL'
         )
 
+    @JournalCB
     def patch_journal(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
         try:
             is_journal_valid = self.check_journal(request, data)
@@ -111,11 +128,12 @@ class JournalRequester(BaseRequester):
             data = data
         )
 
-        return response._process_response(
+        return self._process_response(
             response = response,
             task_name = 'PATCH_ARTICLE'
         )
 
+    @JournalCB
     def delete_journal(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
         journal_json, code = self.journal(request, uuid)
 
@@ -123,11 +141,10 @@ class JournalRequester(BaseRequester):
             return journal_json, code
 
         response = self.delete(
-            url = self.URL + f'{uuid}/',
-            data = data
+            url = self.URL + f'{uuid}/'
         )
 
-        return response._process_response(
+        return self._process_response(
             response = response,
             task_name = 'DELETE_JOURNAL'
         )

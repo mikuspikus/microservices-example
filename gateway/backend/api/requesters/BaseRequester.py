@@ -2,17 +2,22 @@ import requests
 import json
 import logging
 import re
+from circuitbreaker import CircuitBreaker
 
 from typing import Union, Tuple, List, Any, Dict
 
-from django.conf import settings
+# from django.conf import settings
+DEBUG = True #settings.DEBUG
 
-DEBUG = settings.DEBUG
+# from rest_framework.views import Request, Response
 
-from rest_framework.views import Request, Response
+class CustomCurcuitBreaker(CircuitBreaker):
+    FAILURE_THRESHOLD = 5
+    RECOVERY_TIMEOUT = 60
+    EXPECTED_EXCEPTION = requests.exceptions.RequestException
 
 class BaseRequester():
-    logger = logging.getLogger(name = 'requester')
+    logger = logging.getLogger(name = 'api.requester')
     formatter = '{msg}'
 
     URLS = {
@@ -39,140 +44,71 @@ class BaseRequester():
         )
 
     def get(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
-        try:
-            self.loginfo(
-                msg = '{request_type} {url} {headers}'.format(
-                    request_type = 'GET', 
-                    url = url, 
-                    headers = headers
-                )
+        self.loginfo(
+            msg = '{request_type} {url} {headers}'.format(
+            request_type = 'GET', 
+            url = url, 
+            headers = headers
             )
-            response = requests.get(url = url, headers = headers)
+        )
 
-        except requests.exceptions.RequestException as error:
-            self.logexception(
-                msg = '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'GET', 
-                    url = url, 
-                    headers =headers, 
-                    message = str(error)
-                )
-            )
-            return None
-
-        return response
+        return requests.get(url = url, headers = headers)
 
     def post(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
-        try:
-            self.loginfo(
-                msg = '{request_type} {url} {headers}'.format(
-                    request_type = 'POST', 
-                    url = url, 
-                    headers = headers
-                )
+        self.loginfo(
+            msg = '{request_type} {url} {headers}'.format(
+                request_type = 'POST', 
+                url = url, 
+                headers = headers
             )
-            response = requests.post(url = url, json = data, headers = headers)
-
-        except requests.exceptions.RequestException as error:
-            self.logexception(
-                msg = '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'POST', 
-                    url = url, 
-                    headers =headers, 
-                    message = str(error)
-                )
-            )
-            return None
-
-        return response
+        )
+        return requests.post(url = url, json = data, headers = headers)
 
     def delete(self, url: str, headers: dict = {}) -> Union[requests.Response, None]:
-        try:
-            self.loginfo(
-                msg = '{request_type} {url} {headers}'.format(
-                    request_type = 'DELETE', 
-                    url = url, 
-                    headers = headers
-                )
+        self.loginfo(
+            msg = '{request_type} {url} {headers}'.format(
+                request_type = 'DELETE', 
+                url = url, 
+                headers = headers
             )
-            response = requests.delete(url = url, headers = headers)
-
-        except requests.exceptions.RequestException as error:
-            self.logexception(
-                msg = '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'DELETE', 
-                    url = url, 
-                    headers =headers, 
-                    message = str(error)
-                )
-            )
-            return None
-
-        return response
+        )
+        return requests.delete(url = url, headers = headers)
 
     def patch(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
-        try:
-            self.loginfo(
-                msg = '{request_type} {url} {headers}'.format(
-                    request_type = 'PATCH', 
-                    url = url, 
-                    headers = headers
-                )
+        self.loginfo(
+            msg = '{request_type} {url} {headers}'.format(
+                request_type = 'PATCH', 
+                url = url, 
+                headers = headers
             )
-            response = requests.patch(url = url, json = data, headers = headers)
-
-        except requests.exceptions.RequestException as error:
-            self.logexception(
-                msg = '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PATCH', 
-                    url = url, 
-                    headers =headers, 
-                    message = str(error)
-                )
-            )
-            return None
-
-        return response
+        )
+        return requests.patch(url = url, json = data, headers = headers)
 
     def put(self, url: str, data: dict = {}, headers: dict = {}) -> Union[requests.Response, None]:
-        try:
-            self.loginfo(
-                msg = '{request_type} {url} {headers}'.format(
-                    request_type = 'PUT', 
-                    url = url, 
-                    headers = headers
-                )
+        self.loginfo(
+            msg = '{request_type} {url} {headers}'.format(
+                request_type = 'PUT', 
+                url = url, 
+                headers = headers
             )
-            response = requests.put(url = url, json = data, headers = headers)
+        )
+        return requests.put(url = url, json = data, headers = headers)
 
-        except requests.exceptions.RequestException as error:
-            self.logexception(
-                msg = '{request_type} {url} {headers} {message}'.format(
-                    request_type = 'PUT', 
-                    url = url, 
-                    headers =headers, 
-                    message = str(error)
-                )
-            )
-            return None
-
-        return response
-
-    def _token_from_request(self, request: Request) -> str:
+    def _token_from_request(self, request) -> str:
         '''
         Raises KeyError
         '''
         token = request.META['HTTP_AUTHORIZATION']
         return token
 
-    def authenticate_header(self, request: Request) -> Union[Dict[str, str], None]:
+    def authenticate_header(self, request) -> Union[Dict[str, str], None]:
         try:
             return {'Authorization' : f'Token {self._token_from_request(request)}'}
 
         except KeyError:
             return None
 
-    def _limit_offset_from_request(self, request: Request) -> Union[Tuple[int, int], None]:
+    def _limit_offset_from_request(self, request) -> Union[Tuple[int, int], None]:
         try:
             limit = request.query_params['limit']
             offset = request.query_params['offset']
@@ -217,7 +153,7 @@ class BaseRequester():
 
         return data
 
-    def _safe_next_previous_link(self, response: Response):
+    def _safe_next_previous_link(self, response):
         try:
             return self._next_previous_link(
                 data = response.json()

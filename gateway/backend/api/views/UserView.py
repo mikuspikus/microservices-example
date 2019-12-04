@@ -13,19 +13,32 @@ from .BaseView import BaseView
 from api.models import GatewayUser
 
 class BaseUserView(BaseView):
+    SERVICE_ERROR_MSG = '\'user\'-service is unavailable'
     requester = UserRequester()
 
 class AuthenticateView(BaseUserView):
     def post(self, request: Request) -> Response:
         self.info(request)
-        response_json, code = self.requester.authenticate(data = request.data)
+
+        try:
+            response_json, code = self.requester.authenticate(data = request.data)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)
 
 class RegisterView(BaseUserView):
     def post(self, request: Request) -> Response:
         self.info(request)
-        response_json, code = self.requester.register(data = request.data)
+
+        try:
+            response_json, code = self.requester.register(data = request.data)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)
 
@@ -34,13 +47,25 @@ class UserInfoView(BaseUserView):
 
     def get(self, request: Request) -> Response:
         self.info(request)
-        response_json, code = self.requester.info(request = request)
+
+        try:
+            response_json, code = self.requester.info(request = request)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)
 
     def delete(self, request: Request) -> Response:
         self.info(request)
-        response_json, code = self.requester.delete(request)
+
+        try:
+            response_json, code = self.requester.delete(request)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)
 
@@ -48,7 +73,13 @@ class UsersView(BaseUserView):
 
     def get(self, request: Request) -> Response:
         self.info(request)
-        response_json, code = self.requester.users(request = request)
+
+        try:
+            response_json, code = self.requester.users(request = request)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)
 
@@ -57,6 +88,12 @@ class UserView(BaseUserView):
 
     def get(self, request: Request, user_id: int) -> Response:
         self.info(request)
-        response_json, code = self.requester.user(request = request, id_ = user_id)
+
+        try:
+            response_json, code = self.requester.user(request = request, id_ = user_id)
+
+        except CircuitBreakerError:
+            self.exception(self.SERVICE_ERROR_MSG)
+            response_json, code = ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(response_json, status = code)

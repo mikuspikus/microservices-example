@@ -25,6 +25,9 @@ urlpatterns = [
 
     path('users/<int:user_id>/articles/', ComplexView.UserArticlesView.as_view(), name = 'user-articles'),
     path('users/<int:user_id>/journals/', ComplexView.UserJournalsView.as_view(), name = 'user-journals'),
+
+    path('articles/journal/', ComplexView.ArticleAndJournalView.as_view(), name = 'article-and-journal'),
+    path('publishers/journal/', ComplexView.JournalAndPublisherView.as_view(), name = 'journal-and-publisher'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

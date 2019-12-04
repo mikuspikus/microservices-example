@@ -5,7 +5,9 @@ from typing import Union, Tuple, List, Any, Dict
 
 from rest_framework.views import Request
 
-from .BaseRequester import BaseRequester
+from .BaseRequester import BaseRequester, CustomCurcuitBreaker
+
+PublisherCB = CustomCurcuitBreaker()
 
 class PublisherRequester(BaseRequester):
     TOKENS = {
@@ -32,13 +34,7 @@ class PublisherRequester(BaseRequester):
 
         return u_json, code
 
-    def html_publisher(self) -> Tuple[str, int]:
-        response = self.get(
-            url = self.URL + self.TOKENS['html']
-        )
-
-        return self._process_response(response = response, task_name = 'HTML-PUBLISHER')
-
+    @PublisherCB
     def publishers(self, request: Request) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
@@ -69,6 +65,7 @@ class PublisherRequester(BaseRequester):
 
         return (response_json, response.status_code)
 
+    @PublisherCB
     def publisher(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
         response = self.get(
             url = self.URL + f'{uuid}/'
@@ -79,6 +76,7 @@ class PublisherRequester(BaseRequester):
             task_name = 'PUBLISHER'
         )
 
+    @PublisherCB
     def post_publisher(self, request: Request, data: dict) -> Tuple[dict, int]:
         # check request and data
 
@@ -92,6 +90,7 @@ class PublisherRequester(BaseRequester):
             task_name = 'POST_PUBLISHER'
         )
 
+    @PublisherCB
     def patch_publisher(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
         # check request and data
 
@@ -105,6 +104,7 @@ class PublisherRequester(BaseRequester):
             task_name = 'PATCH_PUBLISHER'
         )
 
+    @PublisherCB
     def delete_publisher(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
         publisher_json, code = self.publisher(request, uuid)
 

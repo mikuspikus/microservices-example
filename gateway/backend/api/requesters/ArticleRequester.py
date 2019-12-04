@@ -1,15 +1,16 @@
 import requests
-import json
-from logging import Logger
 from typing import Union, Tuple, List, Any, Dict
+from circuitbreaker import CircuitBreakerError
 
 from gateway.settings import DEBUG
 
 from rest_framework.views import Request, status
 
-from .BaseRequester import BaseRequester
+from .BaseRequester import BaseRequester, CustomCurcuitBreaker
 from .PublisherRequester import PublisherRequester
 from .JournalRequester import JournalRequester
+
+ArtcileCB = CustomCurcuitBreaker()
 
 class ArticleError(Exception):
     pass
@@ -40,6 +41,7 @@ class ArticleRequester(BaseRequester):
 
         return u_json, code
 
+    @ArtcileCB
     def user_articles(self, request: Request, **kwargs):
         url = self.URL
 
@@ -61,6 +63,7 @@ class ArticleRequester(BaseRequester):
 
         return (response_json, code)
 
+    @ArtcileCB
     def articles(self, request: Request) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
@@ -77,10 +80,12 @@ class ArticleRequester(BaseRequester):
 
         if limitoffset:
             url += f'&limit={limitoffset[0]}&offset={limitoffset[1]}'
-
+            
         response = self.get(
-            url = url,
+            url = self.URL
         )
+
+        
 
         response_json, code = self._process_response(
             response = response,
@@ -97,16 +102,23 @@ class ArticleRequester(BaseRequester):
 
         return (response_json, code)
 
+    @ArtcileCB
     def article(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
-        response = self.get(
-            url = self.URL + f'{uuid}/'
-        )
+        try:
+            response = self.get(
+                url = self.URL + f'{uuid}/'
+            )
+
+        except CircuitBreakerError:
+            self.logexception(self.SERVICE_ERROR_MSG)
+            return ({'error': self.SERVICE_ERROR_MSG}, status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return self._process_response(
             response = response,
             task_name = 'ARTICLE'
         )
 
+    @ArtcileCB
     def post_article(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
         try:
             is_article_valid = self.check_article(request, data)
@@ -127,6 +139,7 @@ class ArticleRequester(BaseRequester):
             task_name = 'POST_ARTICLE'
         )
 
+    @ArtcileCB
     def patch_article(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
         try:
             is_article_valid = self.check_article(request, data)
@@ -147,6 +160,7 @@ class ArticleRequester(BaseRequester):
             task_name = 'PATCH_ARTICLE'
         )
 
+    @ArtcileCB
     def delete_article(self, request: Request, data: dict, srt_uuid: str) -> Tuple[Dict[str, str], int]:
         article_json, code = self.article(request, uuid)
 
