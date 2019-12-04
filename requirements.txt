@@ -5,5 +5,5 @@ gunicorn==19.9.0
 requests>=2.20
 django-cors
 django-cors-headers
-celerey
+celery
 gevent
