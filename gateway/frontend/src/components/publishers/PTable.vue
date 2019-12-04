@@ -31,14 +31,15 @@
     </template>
 
     <template v-else>
-      <span>No data has been provided</span>
+      <!-- <b-spinner/> -->
+      <b>Loading data...</b>
     </template>
 
   </div>
 </template>
 
 <script>
-import {BTable} from 'bootstrap-vue'
+import {BTable, BSpinner} from 'bootstrap-vue'
 
 export default {
   name: 'PTable',
@@ -49,27 +50,24 @@ export default {
       default () { return [] }
     },
 
-    api: String,
+    api: String
+  },
 
-    fields: [
-      'uuid',
-      'name',
-      'editor',
-      'address',
-      'journals'
-    ]
+  data () {
+    return {
+      fields: [
+        { key: 'uuid', label: 'UUID' },
+        { key: 'name', label: 'Name' },
+        { key: 'editor', label: 'Editor' },
+        { key: 'address', label: 'Address' },
+        { key: 'journals', label: 'Journals' }
+      ]
+    }
   },
 
   components: {
-    'BTable': BTable
-  },
-
-  methods: {
-    formatJournals (journals) {
-      let result = journals.map((j) => j.uuid).join(', ')
-
-      return result === '' ? 'No data' : result
-    }
+    'BTable': BTable,
+    'b-spinner': BSpinner
   },
 
   computed: {

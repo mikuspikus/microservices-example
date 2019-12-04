@@ -1,6 +1,11 @@
 <template>
   <div id = "publishers">
 
+    <complex-form
+      :api="api"
+      :instruction="instruction"
+    />
+
     <post-form :api="api"></post-form>
 
     <br/>
@@ -19,6 +24,7 @@
 <script>
 import PPostForm from '@/components/publishers/New.vue'
 import PTable from '@/components/publishers/PTable.vue'
+import PComplexForm from '@/components/publishers/ComplexNew.vue'
 import toast from '@/utility/toast'
 
 export default {
@@ -26,13 +32,15 @@ export default {
 
   components: {
     'PublishersTable': PTable,
-    'post-form': PPostForm
+    'post-form': PPostForm,
+    'complex-form': PComplexForm
   },
 
   data () {
     return {
       publishers: [],
-      api: 'publishers/'
+      api: '/publishers/',
+      instruction: 'journal/'
     }
   },
 
@@ -48,7 +56,7 @@ export default {
           this.publishers = response.data
         }).catch(
         error => {
-          toast.error(error)
+          toast.error(error.message)
 
           if (error.response.status === 422) this.$router.push('/422')
 

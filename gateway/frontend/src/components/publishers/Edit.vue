@@ -81,15 +81,15 @@ export default {
     }
   },
 
-  watch: {
-    publisher (newPublisher, oldPublisher) {
-      this.uuid = newPublisher.uuid
-      this.name = newPublisher.name
-      this.editor = newPublisher.editor
-      this.address = newPublisher.address
-      this.journals = newPublisher.journals
-    }
-  },
+  // watch: {
+  //   publisher (newPublisher, oldPublisher) {
+  //     this.uuid = newPublisher.uuid
+  //     this.name = newPublisher.name
+  //     this.editor = newPublisher.editor
+  //     this.address = newPublisher.address
+  //     this.journals = newPublisher.journals
+  //   }
+  // },
 
   methods: {
     delete_journal (index) {

@@ -15,6 +15,7 @@ import Publisher from '@/views/publishers/Publisher.vue'
 import Login from '@/components/users/Login.vue'
 import Logout from '@/components/users/Logout.vue'
 import Register from '@/components/users/Register.vue'
+import Profile from '@/views/users/Profile.vue'
 
 import NotFound from '@/views/generic/NotFound.vue'
 import UnprocessableEntity from '@/views/generic/UnprocessableEntity.vue'
@@ -48,7 +49,10 @@ const router = new Router({
     {
       path: '/logout',
       name: 'logout',
-      component: Logout
+      component: Logout,
+      meta: {
+        requiresAuthorization: true
+      }
     },
 
     {
@@ -56,12 +60,14 @@ const router = new Router({
       name: 'register',
       component: Register
     },
-    // ,
-    // {
-    //   path: '/users/:id',
-    //   name: 'user',
-    //   component: User
-    // },
+    {
+      path: '/users/:id',
+      name: 'user',
+      component: Profile,
+      meta: {
+        requiresAuthorization: true
+      }
+    },
 
     // Articles
     {
