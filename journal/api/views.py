@@ -1,6 +1,7 @@
 from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.authtoken.views import ObtainAuthToken
 
 from django.conf import settings
 from django.core.exceptions import FieldError
@@ -10,9 +11,10 @@ from sys import stdout
 
 from uuid import UUID
 
-from .serializers import JournalSerializer
-from .models import Journal
-
+from .serializers import JournalSerializer, AppAuthSerializer
+from .models import Journal, CustomToken
+from .authentication import ExpiringTokenAuthentication
+from .permissions import IsAuthenticatedByToken
 
 DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
 
@@ -41,8 +43,22 @@ class BaseView(APIView):
             )
         )
 
+class CustomObtainTokenView(BaseView, ObtainAuthToken):
+    serializer_class = AppAuthSerializer
+    def post(self, request: Request) -> Response:
+        self.info(request)
+        
+        serializer = self.serializer_class(data = request.data, context = {'request': request})
+        serializer.is_valid(raise_exception = True)
+        token = CustomToken.objects.create()
+
+        return Response(data = {'token': token.token}, status = status.HTTP_200_OK)
+
 
 class JournalsView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def __clear_request_params(self, request: Request) -> dict:
         params = request.query_params.dict()
 
@@ -96,6 +112,9 @@ class JournalsView(BaseView):
 
 
 class JournalView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def get(self, request: Request, j_uuid: UUID) -> Response:
         self.info(request, f'j_uuid = {j_uuid}')
 

@@ -6,8 +6,15 @@ from typing import Union, Tuple, List, Any, Dict
 from rest_framework.views import Request
 
 from .BaseRequester import BaseRequester, CustomCurcuitBreaker
+from .TokenRequester import TokenRequester
+from ..decorators import TokenHeader
+
+from django.core.cache import cache
+from django.conf import settings
 
 PublisherCB = CustomCurcuitBreaker()
+PTReq = TokenRequester(service = 'PUBLISHER')
+PID, PSECRET = settings.PUBLISHER_CREDENTIALS['id'], settings.PUBLISHER_CREDENTIALS['secret']
 
 class PublisherRequester(BaseRequester):
     TOKENS = {
@@ -35,7 +42,8 @@ class PublisherRequester(BaseRequester):
         return u_json, code
 
     @PublisherCB
-    def publishers(self, request: Request) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = PTReq, app_id = PID, app_secret = PSECRET, t_label = 'publisher-token')
+    def publishers(self, request: Request, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
         # u_json, code = self.__user_by_token(request)
@@ -52,6 +60,7 @@ class PublisherRequester(BaseRequester):
 
         response = self.get(
             url = url,
+            headers = headers
         )
 
         response_json, code = self._process_response(
@@ -66,9 +75,11 @@ class PublisherRequester(BaseRequester):
         return (response_json, response.status_code)
 
     @PublisherCB
-    def publisher(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = PTReq, app_id = PID, app_secret = PSECRET, t_label = 'publisher-token')
+    def publisher(self, request: Request, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         response = self.get(
-            url = self.URL + f'{uuid}/'
+            url = self.URL + f'{uuid}/',
+            headers = headers
         )
 
         return self._process_response(
@@ -77,12 +88,14 @@ class PublisherRequester(BaseRequester):
         )
 
     @PublisherCB
-    def post_publisher(self, request: Request, data: dict) -> Tuple[dict, int]:
+    @TokenHeader(cache = cache, requester = PTReq, app_id = PID, app_secret = PSECRET, t_label = 'publisher-token')
+    def post_publisher(self, request: Request, data: dict, headers: dict = {}) -> Tuple[dict, int]:
         # check request and data
 
         response = self.post(
             url = self.URL,
-            data = data
+            data = data,
+            headers = headers
         )
 
         return self._process_response(
@@ -91,12 +104,14 @@ class PublisherRequester(BaseRequester):
         )
 
     @PublisherCB
-    def patch_publisher(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = PTReq, app_id = PID, app_secret = PSECRET, t_label = 'publisher-token')
+    def patch_publisher(self, request: Request, data: dict, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         # check request and data
 
         response = self.patch(
             url = self.URL + f'{uuid}/',
-            data = data
+            data = data,
+            headers = headers
         )
 
         return response._process_response(
@@ -105,7 +120,8 @@ class PublisherRequester(BaseRequester):
         )
 
     @PublisherCB
-    def delete_publisher(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = PTReq, app_id = PID, app_secret = PSECRET, t_label = 'publisher-token')
+    def delete_publisher(self, request: Request, data: dict, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         publisher_json, code = self.publisher(request, uuid)
 
         if code != 200:
@@ -113,7 +129,8 @@ class PublisherRequester(BaseRequester):
 
         response = self.delete(
             url = self.URL + f'{uuid}/',
-            data = data
+            data = data,
+            headers = headers
         )
 
         return response._process_response(

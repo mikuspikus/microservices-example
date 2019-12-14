@@ -3,16 +3,24 @@ import json
 from logging import Logger
 from typing import Union, Tuple, List, Any, Dict
 
-from gateway.settings import DEBUG
+from django.conf import settings
+
+from ..decorators import TokenHeader
 from .BaseRequester import BaseRequester, CustomCurcuitBreaker
 from .PublisherRequester import PublisherRequester
+from .TokenRequester import TokenRequester
 
 from rest_framework.views import Request, status
 
-class PublisherError(Exception):
-    pass
+from django.core.cache import cache
 
 JournalCB = CustomCurcuitBreaker()
+
+JTReq = TokenRequester(service = 'JOURNAL')
+JID, JSECRET = settings.JOURNAL_CREDENTIALS['id'], settings.JOURNAL_CREDENTIALS['secret']
+
+class PublisherError(Exception):
+    pass
 
 class JournalRequester(BaseRequester):
     URL = ''
@@ -37,7 +45,8 @@ class JournalRequester(BaseRequester):
         return u_json, code
 
     @JournalCB
-    def journals(self, request: Request) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = JTReq, app_id = JID, app_secret = JSECRET, t_label = 'journal-token')
+    def journals(self, request: Request, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
         '''
@@ -57,6 +66,7 @@ class JournalRequester(BaseRequester):
         try:
             response = self.get(
                 url = url,
+                headers = headers
             )
 
         except CircuitBreakerError:
@@ -75,10 +85,12 @@ class JournalRequester(BaseRequester):
         return (response_json, response.status_code)
 
     @JournalCB
-    def journal(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = JTReq, app_id = JID, app_secret = JSECRET, t_label = 'journal-token')
+    def journal(self, request: Request, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         try:
             response = self.get(
-                url = self.URL + f'{uuid}/'
+                url = self.URL + f'{uuid}/',
+                headers = headers
             )
 
         except CircuitBreakerError:
@@ -92,7 +104,8 @@ class JournalRequester(BaseRequester):
         )
 
     @JournalCB
-    def post_journal(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = JTReq, app_id = JID, app_secret = JSECRET, t_label = 'journal-token')
+    def post_journal(self, request: Request, data: dict, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         # try:
         #     is_journal_valid = self.check_journal(request, data)
 
@@ -104,7 +117,8 @@ class JournalRequester(BaseRequester):
 
         response = self.post(
             url = self.URL,
-            data = data
+            data = data,
+            headers = headers
         )
 
         return self._process_response(
@@ -113,7 +127,8 @@ class JournalRequester(BaseRequester):
         )
 
     @JournalCB
-    def patch_journal(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = JTReq, app_id = JID, app_secret = JSECRET, t_label = 'journal-token')
+    def patch_journal(self, request: Request, data: dict, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         try:
             is_journal_valid = self.check_journal(request, data)
 
@@ -125,7 +140,8 @@ class JournalRequester(BaseRequester):
 
         response = self.patch(
             url = self.URL + f'{uuid}/',
-            data = data
+            data = data,
+            headers = headers
         )
 
         return self._process_response(
@@ -134,14 +150,16 @@ class JournalRequester(BaseRequester):
         )
 
     @JournalCB
-    def delete_journal(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = JTReq, app_id = JID, app_secret = JSECRET, t_label = 'journal-token')
+    def delete_journal(self, request: Request, data: dict, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         journal_json, code = self.journal(request, uuid)
 
         if code != 200:
             return journal_json, code
 
         response = self.delete(
-            url = self.URL + f'{uuid}/'
+            url = self.URL + f'{uuid}/',
+            headers = headers
         )
 
         return self._process_response(

@@ -1,10 +1,13 @@
 from .models import Article, Author
-from .serializers import ArticleSerializer
+from .serializers import ArticleSerializer, AppAuthSerializer
+from .authentication import ExpiringTokenAuthentication
+from .permissions import IsAuthenticatedByToken
 
 from rest_framework import status, generics
 from rest_framework.views import Request, Response, APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.authtoken.views import ObtainAuthToken
 
 from django.core.exceptions import FieldError
 from django.conf import settings
@@ -40,7 +43,21 @@ class BaseView(APIView):
             )
         )
 
+class CustomObtainTokenView(BaseView, ObtainAuthToken):
+    serializer_class = AppAuthSerializer
+    def post(self, request: Request) -> Response:
+        self.info(request)
+        
+        serializer = self.serializer_class(data = request.data, context = {'request': request})
+        serializer.is_valid(raise_exception = True)
+        token = CustomToken.objects.create()
+
+        return Response(data = {'token': token.token}, status = status.HTTP_200_OK)
+
 class ArticlesView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def __clear_request_params(self, request: Request) -> dict:
         params = request.query_params.dict()
 
@@ -109,6 +126,9 @@ class ArticlesView(BaseView):
         )
 
 class ArticleView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def get(self, request: Request, art_uuid: UUID) -> Response:
         self.info(request)
         try:

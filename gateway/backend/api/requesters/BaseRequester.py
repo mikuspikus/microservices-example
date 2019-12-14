@@ -103,7 +103,7 @@ class BaseRequester():
 
     def authenticate_header(self, request) -> Union[Dict[str, str], None]:
         try:
-            return {'Authorization' : f'Token {self._token_from_request(request)}'}
+            return {'Authorization' : f'Bearer {self._token_from_request(request)}'}
 
         except KeyError:
             return None

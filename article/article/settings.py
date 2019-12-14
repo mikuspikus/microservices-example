@@ -156,3 +156,6 @@ LOGGING = {
         },
     }
 }
+
+APP_ID, APP_SECRET = '8082', 'article-service-secret'
+TOKEN_EXPIRED_AFTER_SECONDS = 3600

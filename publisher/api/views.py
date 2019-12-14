@@ -2,17 +2,21 @@ from rest_framework import status, generics
 from rest_framework.views import APIView, Request, Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.permissions import IsAuthenticated
 
 import logging
 
 from uuid import UUID
 
-from .serializers import PublisherSerializer
-from .models import Publisher
+from .serializers import PublisherSerializer, AppAuthSerializer
+from .models import Publisher, CustomToken
 
 from django.core.exceptions import FieldError
 from django.conf import settings
+
+from .authentication import ExpiringTokenAuthentication
+from .permissions import IsAuthenticatedByToken
 
 
 DEFAULT_PAGE_LIMIT = settings.DEFAULT_PAGE_LIMIT
@@ -41,7 +45,21 @@ class BaseView(APIView):
             )
         )
 
+class CustomObtainTokenView(BaseView, ObtainAuthToken):
+    serializer_class = AppAuthSerializer
+    def post(self, request: Request) -> Response:
+        self.info(request)
+        
+        serializer = self.serializer_class(data = request.data, context = {'request': request})
+        serializer.is_valid(raise_exception = True)
+        token = CustomToken.objects.create()
+
+        return Response(data = {'token': token.token}, status = status.HTTP_200_OK)
+
 class PublishersView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def __clear_request_params(self, request: Request) -> dict:
         params = request.query_params.dict()
 
@@ -95,6 +113,9 @@ class PublishersView(BaseView):
         )
 
 class PublisherView(BaseView):
+    authentication_classes = (ExpiringTokenAuthentication, )
+    permission_classes = (IsAuthenticatedByToken, )
+
     def get(self, request: Request, p_uuid: UUID) -> Response:
         self.info(request, f'p_uuid = {p_uuid}')
 

@@ -1,6 +1,8 @@
 from django.db import models
 import uuid as uuid_
 
+import binascii, os
+
 # Create your models here.
 class Author(models.Model):
 
@@ -39,3 +41,19 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         return reverse("Article_detail", kwargs={"pk": self.pk})
+
+class CustomToken(models.Model):
+    token = models.CharField(verbose_name = 'Token', max_length = 40)
+    created = models.DateTimeField(verbose_name = 'Creation Date', auto_now_add = True)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = self.generate_token()
+
+        return super().save(*args, **kwargs)
+
+    def generate_token(self):
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    def __str__(self):
+        return self.token

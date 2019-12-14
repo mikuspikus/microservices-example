@@ -43,10 +43,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'oauth2_provider',
     'api',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",
     "http://localhost:8080"
@@ -94,7 +94,15 @@ if DEBUG:
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES' : renderer_classes,
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': ['api.authentication.CookieTokenAuthentication', ], # custom authentication class
+}
+
+OAUTH2_PROVIDER = {
+    'RESOURCE_SERVER_INTROSPECTION_URL': 'http://localhost:8081/oauth2/introspect/',
+    'RESOURCE_SERVER_AUTH_TOKEN': '3yUqsWtwKYKHnfivFcJu',
 }
 
 # Database
@@ -187,7 +195,17 @@ LOGGING = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
 # AUTHENTICATION_BACKENDS = [
 #     'api.authentication.DjangoAuthentication',
 #     'django.contrib.auth.backends.ModelBackend',
 # ]
+PUBLISHER_CREDENTIALS = {'id': '8084', 'secret': 'publisher-service-secret'}
+JOURNAL_CREDENTIALS = {'id': '8083', 'secret': 'journal-service-secret'}
+ARTICLE_CREDENTIALS = {'id': '8082', 'secret': 'article-service-secret'}

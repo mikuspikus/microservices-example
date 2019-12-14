@@ -2,15 +2,21 @@ import requests
 from typing import Union, Tuple, List, Any, Dict
 from circuitbreaker import CircuitBreakerError
 
-from gateway.settings import DEBUG
+from django.conf import settings
+from django.core.cache import cache
 
 from rest_framework.views import Request, status
 
+from ..decorators import TokenHeader
+from .TokenRequester import TokenRequester
 from .BaseRequester import BaseRequester, CustomCurcuitBreaker
 from .PublisherRequester import PublisherRequester
 from .JournalRequester import JournalRequester
 
 ArtcileCB = CustomCurcuitBreaker()
+
+ATReq = TokenRequester(service = 'ARTICLE')
+AID, ASECRET = settings.ARTICLE_CREDENTIALS['id'], settings.ARTICLE_CREDENTIALS['secret']
 
 class ArticleError(Exception):
     pass
@@ -42,7 +48,8 @@ class ArticleRequester(BaseRequester):
         return u_json, code
 
     @ArtcileCB
-    def user_articles(self, request: Request, **kwargs):
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'article-token')
+    def user_articles(self, request: Request, headers: dict = {}, **kwargs):
         url = self.URL
 
         if kwargs:
@@ -54,6 +61,7 @@ class ArticleRequester(BaseRequester):
 
         response = self.get(
             url = url,
+            headers = headers
         )
 
         response_json, code = self._process_response(
@@ -64,7 +72,8 @@ class ArticleRequester(BaseRequester):
         return (response_json, code)
 
     @ArtcileCB
-    def articles(self, request: Request) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'journal-token')
+    def articles(self, request: Request, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         url = self.URL
 
         '''
@@ -82,7 +91,8 @@ class ArticleRequester(BaseRequester):
             url += f'&limit={limitoffset[0]}&offset={limitoffset[1]}'
             
         response = self.get(
-            url = self.URL
+            url = self.URL,
+            headers = headers
         )
 
         
@@ -103,10 +113,12 @@ class ArticleRequester(BaseRequester):
         return (response_json, code)
 
     @ArtcileCB
-    def article(self, request: Request, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'journal-token')
+    def article(self, request: Request, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         try:
             response = self.get(
-                url = self.URL + f'{uuid}/'
+                url = self.URL + f'{uuid}/',
+                headers = headers
             )
 
         except CircuitBreakerError:
@@ -119,7 +131,8 @@ class ArticleRequester(BaseRequester):
         )
 
     @ArtcileCB
-    def post_article(self, request: Request, data: dict) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'journal-token')
+    def post_article(self, request: Request, data: dict, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         try:
             is_article_valid = self.check_article(request, data)
 
@@ -131,7 +144,8 @@ class ArticleRequester(BaseRequester):
 
         response = self.post(
             url = self.URL,
-            data = data
+            data = data,
+            headers = headers
         )
 
         return self._process_response(
@@ -140,7 +154,8 @@ class ArticleRequester(BaseRequester):
         )
 
     @ArtcileCB
-    def patch_article(self, request: Request, data: dict, uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'journal-token')
+    def patch_article(self, request: Request, data: dict, uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         try:
             is_article_valid = self.check_article(request, data)
 
@@ -152,7 +167,8 @@ class ArticleRequester(BaseRequester):
 
         response = self.patch(
             url = self.URL + f'{uuid}/',
-            data = data
+            data = data,
+            headers = headers
         )
 
         return response._process_response(
@@ -161,7 +177,8 @@ class ArticleRequester(BaseRequester):
         )
 
     @ArtcileCB
-    def delete_article(self, request: Request, data: dict, srt_uuid: str) -> Tuple[Dict[str, str], int]:
+    @TokenHeader(cache = cache, requester = ATReq, app_id = AID, app_secret = ASECRET, t_label = 'journal-token')
+    def delete_article(self, request: Request, data: dict, srt_uuid: str, headers: dict = {}) -> Tuple[Dict[str, str], int]:
         article_json, code = self.article(request, uuid)
 
         if code != 200:
@@ -169,7 +186,8 @@ class ArticleRequester(BaseRequester):
 
         response = self.delete(
             url = self.URL + f'{uuid}/',
-            data = data
+            data = data,
+            headers = headers
         )
 
         return response._process_response(

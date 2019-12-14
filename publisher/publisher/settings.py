@@ -172,3 +172,6 @@ LOGGING = {
         },
     }
 }
+
+APP_ID, APP_SECRET = '8084', 'publisher-service-secret'
+TOKEN_EXPIRED_AFTER_SECONDS = 36003
