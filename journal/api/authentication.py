@@ -24,9 +24,8 @@ def is_token_expired(token: CustomToken) -> bool:
 def token_handler(token: CustomToken) -> Tuple[bool, CustomToken]:
     is_expired = is_token_expired(token)
 
-    # if is_expired:
-    #     token.generate_token()
-    #     token.save()
+    if is_expired:
+        token.delete()
 
     return (is_expired, token)
 
