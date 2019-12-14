@@ -9,7 +9,7 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name = 'register'), 
     path('users/', views.UsersView.as_view(), name = 'users'),
     path('users/<int:user_id>/', views.UserView.as_view(), name = 'user'),
-    path('auth/', views.CustomAuthToken.as_view(), name = 'authorization')
+    path('auth/', views.CustomAuthToken.as_view(), name = 'authorization'),
 ]
 
 
