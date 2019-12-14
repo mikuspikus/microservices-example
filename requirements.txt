@@ -8,3 +8,5 @@ django-cors-headers
 celery
 gevent
 circuitbreaker
+django-oauth-toolkit
+python-memcached
