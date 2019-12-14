@@ -5,10 +5,16 @@ import json
 from rest_framework.test import APIClient, force_authenticate, APITestCase
 from rest_framework.authtoken.models import Token
 
-from .models import Publisher, Journal
+from .models import Publisher, Journal, CustomToken
 
 class PublishersAPIViewTestCase(APITestCase):
     url = '/publishers/'
+    token = ''
+    keyword = 'Bearer'
+
+    def setUp(self):
+        token = CustomToken.objects.create()
+        self.client.credentials(HTTP_AUTHORIZATION = f'{self.keyword} {token.token}')
 
     def test_create_publisher(self):
         p_data = {
@@ -57,8 +63,12 @@ class PublishersAPIViewTestCase(APITestCase):
 
 class PublisherAPIViewTestCase(APITestCase):
     url = '/publishers/'
+    token = ''
+    keyword = 'Bearer'
 
     def setUp(self):
+        token = CustomToken.objects.create()
+        self.client.credentials(HTTP_AUTHORIZATION = f'{self.keyword} {token.token}')
         self.name = "Funky Publisher"
         self.editor = "Don Digidon"
         self.journals = [
